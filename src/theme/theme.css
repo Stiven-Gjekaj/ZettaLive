@@ -1,0 +1,69 @@
+/* The theme of the Zetta family: black and white. Red is only for errors. */
+
+@font-face {
+  font-family: 'Karla';
+  src: url('/fonts/karla.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+:root {
+  --background: #000000;
+  --surface: #0e0e0e;
+  --surface-high: #181818;
+  --outline: #2e2e2e;
+  --accent: #ffffff;
+  --on-accent: #000000;
+  --text: #f2f2f2;
+  --text-dim: #8c8c8c;
+  --danger: #ff6b6b;
+  --corner: 8px;
+  --rail: 64px;
+  --tabs: 60px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: 'Karla', system-ui, sans-serif;
+  line-height: 1.3;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* One white ring for each focused item, as on ZettaStream. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--corner);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 700;
+}
