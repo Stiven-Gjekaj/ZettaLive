@@ -21,6 +21,20 @@ ZettaLive operates on HTTPS only. A browser cannot play some streams from an
 HTTPS page: a cleartext `http://` stream, a stream with no CORS headers, or a
 stream that needs a special header. The app marks these channels.
 
+## Features
+
+- Playlists from a URL, a file, or an Xtream Codes account. A gzip file also
+  works.
+- Live TV with logos, numbers, groups, search, favourites, recent channels,
+  and hidden channels and groups.
+- A player for HLS and MPEG-TS, with the audio track, the quality, and a new
+  connection when a stream stops.
+- The XMLTV guide: now and next, a 24 hour guide grid, and catch-up TV.
+- Profiles, each with a picture, favourites, recent channels, and settings.
+- Picture in picture, lock screen controls, and video filters: CRT, VHS,
+  vintage film, and black and white.
+- A backup file to move everything to a different device.
+
 ## Install
 
 Open the link above. To install it as an app:
@@ -39,6 +53,7 @@ Open the link above. To install it as an app:
 | Space or `K` | Play or pause |
 | `M` | Mute |
 | `F` | Full screen |
+| `P` | Picture in picture |
 | Escape | Back to the list |
 
 ## Build it yourself
