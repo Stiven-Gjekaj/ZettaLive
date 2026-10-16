@@ -8,7 +8,7 @@ import { startEngine, type Engine, type Track } from './engine'
 import { useHealth } from './health'
 import { useLibrary } from '../library/library'
 import { addDigit, entryNumber, stepIn, type NumberEntry } from './numberEntry'
-import { usePlayer } from './player'
+import { usePlayer, type CatchupPlay } from './player'
 import { BLOCK_TEXT, knownBlock, streamKind, type BlockReason, type StreamKind } from './stream'
 
 const MAX_RETRIES = 3
@@ -61,16 +61,24 @@ function NowNext({ programmes }: { programmes?: Programme[] }) {
 }
 
 /** The playback of one channel. The player draws a new session for each channel. */
-function PlayerSession({ channel, channels, programmes }: { channel: NumberedChannel; channels: NumberedChannel[]; programmes?: Programme[] }) {
+interface SessionProps {
+  channel: NumberedChannel
+  channels: NumberedChannel[]
+  programmes?: Programme[]
+  catchup?: CatchupPlay
+}
+
+function PlayerSession({ channel, channels, programmes, catchup }: SessionProps) {
+  const url = catchup?.url ?? channel.url
   const video = useRef<HTMLVideoElement>(null)
   const box = useRef<HTMLDivElement>(null)
   const engine = useRef<Engine | null>(null)
   const played = useRef(false)
   const retries = useRef(0)
-  const known = knownBlock(channel)
+  const known = knownBlock({ ...channel, url })
   const [status, setStatus] = useState<Status>(known ? 'blocked' : 'loading')
   const [reason, setReason] = useState<BlockReason | undefined>(known)
-  const [kind, setKind] = useState<StreamKind>(() => streamKind(channel.url))
+  const [kind, setKind] = useState<StreamKind>(() => streamKind(url))
   const [attempt, setAttempt] = useState(0)
   const [tracks, setTracks] = useState<Tracks>(NO_TRACKS)
   const [muted, setMuted] = useState(false)
@@ -84,14 +92,15 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
     (why: BlockReason) => {
       setStatus('blocked')
       setReason(why)
-      useHealth.getState().mark(channel.id, why)
+      // A failed catch-up says nothing about the live stream.
+      if (!catchup) useHealth.getState().mark(channel.id, why)
     },
-    [channel.id],
+    [channel.id, catchup],
   )
 
   useEffect(() => {
-    if (known) useHealth.getState().mark(channel.id, known)
-  }, [channel.id, known])
+    if (known && !catchup) useHealth.getState().mark(channel.id, known)
+  }, [channel.id, known, catchup])
 
   // Start the stream, and start it again after a failure.
   useEffect(() => {
@@ -104,7 +113,7 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
     }
     startEngine(
       element,
-      channel.url,
+      url,
       kind,
       {
         onTracks: refresh,
@@ -137,7 +146,7 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
       engine.current?.destroy()
       engine.current = null
     }
-  }, [channel.url, kind, attempt, known, block])
+  }, [url, kind, attempt, known, block])
 
   // Start again when the stream waits for data for too long.
   useEffect(() => {
@@ -149,7 +158,7 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
       played.current = true
       retries.current = 0
       setStatus('playing')
-      useHealth.getState().clear(channel.id)
+      if (!catchup) useHealth.getState().clear(channel.id)
       useLibrary.getState().addRecent(channel.id)
     }
     const onWaiting = () => {
@@ -172,7 +181,7 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
       element.removeEventListener('pause', onPause)
       element.removeEventListener('volumechange', onVolume)
     }
-  }, [channel.id])
+  }, [channel.id, catchup])
 
   // Hide the controls when nothing happens for a short time.
   useEffect(() => {
@@ -307,9 +316,9 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
           <span className="channel-name">
             {channel.shown} {channel.name}
           </span>
-          <span className="dim">{groupOf(channel)}</span>
+          <span className="dim">{catchup ? `Catch-up: ${catchup.title}` : groupOf(channel)}</span>
         </div>
-        <NowNext programmes={programmes} />
+        {!catchup && <NowNext programmes={programmes} />}
       </div>
 
       <div className="player-bottom">
@@ -372,9 +381,18 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
 /** The full screen player. It shows when a channel is open. */
 export function PlayerView() {
   const channelId = usePlayer((s) => s.channelId)
+  const catchup = usePlayer((s) => s.catchup)
   const channels = useChannels()
   const programmes = useChannelProgrammes()
   const channel = channelId ? channels.find((c) => c.id === channelId) : undefined
   if (!channel) return null
-  return <PlayerSession key={channel.id} channel={channel} channels={channels} programmes={programmes.get(channel.id)} />
+  return (
+    <PlayerSession
+      key={`${channel.id}|${catchup?.url ?? ''}`}
+      channel={channel}
+      channels={channels}
+      programmes={programmes.get(channel.id)}
+      catchup={catchup}
+    />
+  )
 }

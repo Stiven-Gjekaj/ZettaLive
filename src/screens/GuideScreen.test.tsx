@@ -65,3 +65,22 @@ test('asks for a guide when none is loaded', () => {
   render(<GuideScreen />)
   expect(screen.getByRole('button', { name: 'Add a guide' })).toBeTruthy()
 })
+
+test('plays a past programme from the start on a catch-up channel', () => {
+  const list = usePlaylists.getState().results.p!.channels
+  usePlaylists.setState({
+    results: { p: { status: 'ready', channels: [{ ...list[0]!, catchup: 'shift', catchupDays: 1 }], guideUrls: ['https://g.example/e.xml'] } },
+  })
+  const past = { start: at('2026-10-17T09:00:00Z'), stop: at('2026-10-17T10:00:00Z'), title: 'Early' }
+  useGuides.setState({ results: { 'https://g.example/e.xml': { status: 'ready', guide: { ...GUIDE, programmes: { news: [past, ...GUIDE.programmes.news!] } } } } })
+  render(<GuideScreen />)
+  fireEvent.click(screen.getByRole('gridcell', { name: /Early/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Watch from the start' }))
+  expect(usePlayer.getState().catchup).toEqual({ url: `https://s.example/a.m3u8?utc=${at('2026-10-17T09:00:00Z') / 1000}&lutc=${NOW / 1000}`, title: 'Early' })
+})
+
+test('offers no catch-up for a programme that is on now', () => {
+  render(<GuideScreen />)
+  fireEvent.click(screen.getByRole('gridcell', { name: /Morning News/ }))
+  expect(screen.queryByRole('button', { name: 'Watch from the start' })).toBeNull()
+})

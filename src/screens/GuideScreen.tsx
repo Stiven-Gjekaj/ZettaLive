@@ -5,6 +5,7 @@ import { useLibrary } from '../library/library'
 import { useSettings } from '../library/settings'
 import { useHealth } from '../player/health'
 import { knownBlock } from '../player/stream'
+import { canCatchUp, catchupUrl } from '../player/catchup'
 import { usePlayer } from '../player/player'
 import { clock, useChannelProgrammes, useNow } from '../guide/useGuide'
 import type { Programme } from '../guide/xmltv'
@@ -178,6 +179,21 @@ export function GuideScreen() {
           {picked.programme.subTitle && <p>{picked.programme.subTitle}</p>}
           {picked.programme.description && <p className="sheet-text">{picked.programme.description}</p>}
           <div className="row">
+            {canCatchUp(picked.channel, picked.programme.start, picked.programme.stop, now) &&
+              catchupUrl(picked.channel, picked.programme.start, picked.programme.stop, now) && (
+                <button
+                  type="button"
+                  className="button button-primary"
+                  onClick={() => {
+                    const { channel, programme } = picked
+                    const url = catchupUrl(channel, programme.start, programme.stop, Date.now())
+                    setPicked(undefined)
+                    if (url) usePlayer.getState().open(channel.id, rows.map((c) => c.id), { url, title: programme.title })
+                  }}
+                >
+                  Watch from the start
+                </button>
+              )}
             <button
               type="button"
               className="button button-primary"

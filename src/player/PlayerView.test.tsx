@@ -105,3 +105,15 @@ test('adds a channel to the recent channels when it plays', async () => {
   expect(useLibrary.getState().recents).toEqual(['a'])
   expect(screen.queryByRole('status')).toBeNull()
 })
+
+test('plays a catch-up URL with its title, and does not mark the channel when it fails', async () => {
+  usePlayer.getState().open('a', ['a', 'b'], { url: 'https://s.example/one.m3u8?utc=1', title: 'Early' })
+  render(<PlayerView />)
+  await act(async () => {})
+  expect(started[0]?.url).toBe('https://s.example/one.m3u8?utc=1')
+  expect(screen.getByText('Catch-up: Early')).toBeTruthy()
+  await act(async () => started[0]?.events.onStop('network'))
+  expect(useHealth.getState().blocked).toEqual({})
+  fireEvent.keyDown(window, { key: 'ArrowDown' })
+  expect(usePlayer.getState().catchup).toBeUndefined()
+})
