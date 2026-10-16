@@ -4,15 +4,6 @@ Each phase gives a version that operates. Do the phases in this order.
 A task leaves this list when its release is out. The reason for each choice
 is in [docs/decisions.md](docs/decisions.md).
 
-## 1. The base
-
-- A React and TypeScript project that Vite builds.
-- The linter, the tests, and CI on GitHub Actions.
-- The theme of the Zetta family: black and white, with the Karla font.
-- A layout for each device: a slim icon bar on a desktop, a tab bar on a
-  phone.
-- An installable PWA with a manifest and an icon.
-
 ## 2. Playlists
 
 - Add a playlist from a URL or from a file.
