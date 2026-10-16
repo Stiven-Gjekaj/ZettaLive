@@ -12,6 +12,7 @@ src/
   theme/         the colours, the font, and the base styles
   iptv/          playlists and channels: the M3U reader, the loader, the stores
   library/       the favourites and the hidden channels and groups of a profile
+  player/        the player, its engines, and the channel keys
   ui/            the navigation and the shared parts of the interface
   screens/       one file for each screen
 public/
@@ -54,6 +55,27 @@ hidden groups in IndexedDB, under one key for each profile.
 
 `ui/VirtualList.tsx` draws only the rows near the visible part of the list,
 so a playlist with thousands of channels stays fast on a phone.
+
+## The player
+
+`player/stream.ts` finds the kind of a stream from its URL: HLS, MPEG-TS, or
+a plain file. A URL that does not tell is HLS first. It also finds the
+reasons that are known before the stream starts: a cleartext `http://` URL on
+an HTTPS page, or a channel that needs a user agent or a referrer.
+
+`player/engine.ts` starts the stream. hls.js plays HLS, and mpegts.js plays
+MPEG-TS. Both load only when the first stream of their kind starts. When the
+browser has no Media Source Extensions but plays HLS itself, as Safari on an
+iPhone does, the video element plays the URL directly.
+
+When HLS cannot read the playlist of a URL that does not tell its kind, the
+player tries MPEG-TS. A stream that fails before it plays gets a mark in
+`player/health.ts`, and the channel list shows the mark. A stream that stops
+after it played starts again up to three times, and also after 20 seconds
+with no data.
+
+`player/PlayerView.tsx` draws one session for each channel, so each channel
+starts with a clean state.
 
 ## The installable app
 
