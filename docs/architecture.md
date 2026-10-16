@@ -11,7 +11,7 @@ src/
   main.tsx       the start of the app
   theme/         the colours, the font, and the base styles
   iptv/          playlists and channels: the M3U reader, the loader, the stores
-  library/       the favourites and the hidden channels and groups of a profile
+  library/       profiles, and the favourites, recents, settings, and backup
   player/        the player, its engines, and the channel keys
   guide/         the XMLTV reader, the guide store, and the match to channels
   ui/            the navigation and the shared parts of the interface
@@ -51,8 +51,8 @@ the playlists. `iptv/channels.ts` gives each channel a number: the
 `tvg-chno` attribute, or else the next free number. It also groups, searches,
 and filters the channels. A search ignores case and accents.
 
-`library/library.ts` keeps the favourites, the hidden channels, and the
-hidden groups in IndexedDB, under one key for each profile.
+`library/library.ts` keeps the favourites, the recent channels, the hidden
+channels, and the hidden groups in IndexedDB, under one key for each profile.
 
 `ui/VirtualList.tsx` draws only the rows near the visible part of the list,
 so a playlist with thousands of channels stays fast on a phone.
@@ -95,6 +95,19 @@ no text in brackets, and no HD or 4K mark.
 
 `screens/GuideScreen.tsx` draws 24 hours from the half hour before now. It
 draws only the rows and the programmes near the visible part of the grid.
+
+## Profiles and backup
+
+`library/profiles.ts` keeps the list of profiles and the active profile. When
+there is more than one profile, the app asks "Who is watching?" at the start.
+A change of profile loads its library and its settings
+(`library/settings.ts`).
+
+`library/backup.ts` writes the stored values to a JSON file: the playlists,
+the guide URLs, the profiles, and the data of each profile. It keeps the text
+of a playlist from a file, but not the saved copies of URLs and guides,
+because the app loads them again. A restore replaces all stored values, then
+the page loads again.
 
 ## The installable app
 
