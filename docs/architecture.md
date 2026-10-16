@@ -13,6 +13,7 @@ src/
   iptv/          playlists and channels: the M3U reader, the loader, the stores
   library/       the favourites and the hidden channels and groups of a profile
   player/        the player, its engines, and the channel keys
+  guide/         the XMLTV reader, the guide store, and the match to channels
   ui/            the navigation and the shared parts of the interface
   screens/       one file for each screen
 public/
@@ -76,6 +77,24 @@ with no data.
 
 `player/PlayerView.tsx` draws one session for each channel, so each channel
 starts with a clean state.
+
+## The guide
+
+The guide URLs come from the `url-tvg` attribute of each playlist, and from
+the guides that the user adds on the Playlists screen.
+
+`guide/xmltv.ts` reads a guide with regular expressions, not with a DOM, so a
+large guide does not use too much memory. It keeps only the programmes from
+3 hours before now to 36 hours after now. `guide/guides.ts` keeps the result
+of each guide in IndexedDB, and loads a guide again only when its copy is
+older than 6 hours.
+
+`guide/match.ts` finds the programmes of a channel: by its `tvg-id`, then by
+its `tvg-name`, then by its name. A name compares with no case, no accents,
+no text in brackets, and no HD or 4K mark.
+
+`screens/GuideScreen.tsx` draws 24 hours from the half hour before now. It
+draws only the rows and the programmes near the visible part of the grid.
 
 ## The installable app
 
