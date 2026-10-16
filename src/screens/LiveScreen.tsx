@@ -6,6 +6,9 @@ import { useLibrary } from '../library/library'
 import { ChannelLogo } from '../ui/ChannelLogo'
 import { VirtualList } from '../ui/VirtualList'
 import { useNavigation } from '../ui/route'
+import { useHealth } from '../player/health'
+import { usePlayer } from '../player/player'
+import { knownBlock } from '../player/stream'
 
 const ROW = 64
 
@@ -25,18 +28,25 @@ interface RowProps {
   channel: NumberedChannel
   favourite: boolean
   hidden: boolean
+  blocked: boolean
+  onPlay: (channel: NumberedChannel) => void
 }
 
-function ChannelRow({ channel, favourite, hidden }: RowProps) {
+function ChannelRow({ channel, favourite, hidden, blocked, onPlay }: RowProps) {
   const { toggleFavourite, setChannelHidden } = useLibrary.getState()
   return (
     <div className="channel-row">
-      <span className="channel-number">{channel.shown}</span>
-      <ChannelLogo name={channel.name} logo={channel.logo} />
-      <span className="channel-text">
-        <span className="channel-name">{channel.name}</span>
-        <span className="channel-group dim">{groupOf(channel)}</span>
-      </span>
+      <button type="button" className="channel-play" aria-label={`Play ${channel.name}`} onClick={() => onPlay(channel)}>
+        <span className="channel-number">{channel.shown}</span>
+        <ChannelLogo name={channel.name} logo={channel.logo} />
+        <span className="channel-text">
+          <span className="channel-name">{channel.name}</span>
+          <span className="channel-group dim">
+            {blocked && <span className="badge">Cannot play here</span>}
+            {groupOf(channel)}
+          </span>
+        </span>
+      </button>
       <button
         type="button"
         className="icon-button"
@@ -64,6 +74,7 @@ export function LiveScreen() {
   const hiddenChannels = useLibrary((s) => s.hiddenChannels)
   const [filter, setFilter] = useState<ChannelFilter>({ kind: 'all' })
   const [query, setQuery] = useState('')
+  const blocked = useHealth((s) => s.blocked)
 
   const groups = useMemo(() => groupsOf(channels), [channels])
   const shown = useMemo(
@@ -139,7 +150,15 @@ export function LiveScreen() {
           items={shown}
           rowHeight={ROW}
           keyOf={(c) => c.id}
-          renderRow={(c) => <ChannelRow channel={c} favourite={favouriteSet.has(c.id)} hidden={isHidden(c, hiddenGroups, hiddenChannels)} />}
+          renderRow={(c) => (
+            <ChannelRow
+              channel={c}
+              favourite={favouriteSet.has(c.id)}
+              hidden={isHidden(c, hiddenGroups, hiddenChannels)}
+              blocked={Boolean(blocked[c.id] ?? knownBlock(c))}
+              onPlay={(picked) => usePlayer.getState().open(picked.id, shown.map((x) => x.id))}
+            />
+          )}
         />
       )}
     </section>

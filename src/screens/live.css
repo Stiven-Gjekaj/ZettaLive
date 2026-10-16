@@ -132,3 +132,30 @@
     width: 28px;
   }
 }
+
+.channel-play {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.channel-play:hover .channel-name {
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 11px;
+}

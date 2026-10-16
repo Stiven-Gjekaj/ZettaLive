@@ -3,6 +3,8 @@ import { clear } from 'idb-keyval'
 import { usePlaylists } from '../iptv/playlists'
 import { useLibrary, EMPTY_LIBRARY } from '../library/library'
 import { LiveScreen } from './LiveScreen'
+import { usePlayer } from '../player/player'
+import { useHealth } from '../player/health'
 import type { Channel } from '../iptv/m3u'
 
 const channel = (id: string, name: string, group?: string): Channel => ({ id, playlistId: 'p', name, url: `https://s.example/${id}`, group })
@@ -66,4 +68,14 @@ test('draws only the rows near the visible part of a long list', () => {
   render(<LiveScreen />)
   expect(rows().length).toBeLessThan(40)
   expect(rows()[0]).toBe('Channel 0')
+})
+
+test('opens the player with the shown list, and marks a channel that cannot play', () => {
+  setChannels([channel('a', 'BBC One', 'News'), channel('b', 'Film Four', 'Films'), channel('c', 'Sky News', 'News')])
+  useHealth.setState({ blocked: { c: 'network' } })
+  render(<LiveScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'News' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Play Sky News' }))
+  expect(usePlayer.getState()).toMatchObject({ channelId: 'c', order: ['a', 'c'] })
+  expect(screen.getAllByText('Cannot play here')).toHaveLength(1)
 })
