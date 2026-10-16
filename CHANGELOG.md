@@ -8,6 +8,21 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 1.0.0 (2026-10-17)
+
+- Catch-up TV: on a channel with catch-up, tap a past programme in the guide
+  and watch it from the start.
+- Xtream Codes: add an account of an IPTV provider with its server, user
+  name, and password. Its guide loads too.
+- Picture in picture: press the button or `P`.
+- The lock screen of a phone shows the channel and the programme, with next
+  and previous.
+- Video filters in the player: CRT, VHS, vintage film, and black and white.
+  Each profile keeps its filter.
+- A stream that does not start in 20 seconds starts again one time, and then
+  shows the reason. When the browser blocks autoplay, a Play button shows.
+- Fixes a stream that did not start the first time after the page loaded.
+
 ## 0.6.0 (2026-10-17)
 
 - Recent channels: the channels that you watched last, in their own filter.
