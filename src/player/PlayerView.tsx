@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react
 import { channelByNumber, groupOf, type NumberedChannel } from '../iptv/channels'
 import { useChannels } from '../iptv/useChannels'
 import { ChannelLogo } from '../ui/ChannelLogo'
+import { clock, useChannelProgrammes, useNow } from '../guide/useGuide'
+import { nowAndNext, type Programme } from '../guide/xmltv'
 import { startEngine, type Engine, type Track } from './engine'
 import { useHealth } from './health'
 import { addDigit, entryNumber, stepIn, type NumberEntry } from './numberEntry'
@@ -36,8 +38,29 @@ function useStep(channelId: string) {
   )
 }
 
+/** Now and next of the channel, from the guide. */
+function NowNext({ programmes }: { programmes?: Programme[] }) {
+  const time = useNow()
+  const { now, next } = nowAndNext(programmes, time)
+  if (!now && !next) return null
+  return (
+    <div className="player-guide">
+      {now && (
+        <p>
+          <span className="dim">Now</span> {clock(now.start)} to {clock(now.stop)}: <strong>{now.title}</strong>
+        </p>
+      )}
+      {next && (
+        <p className="dim">
+          Next {clock(next.start)}: {next.title}
+        </p>
+      )}
+    </div>
+  )
+}
+
 /** The playback of one channel. The player draws a new session for each channel. */
-function PlayerSession({ channel, channels }: { channel: NumberedChannel; channels: NumberedChannel[] }) {
+function PlayerSession({ channel, channels, programmes }: { channel: NumberedChannel; channels: NumberedChannel[]; programmes?: Programme[] }) {
   const video = useRef<HTMLVideoElement>(null)
   const box = useRef<HTMLDivElement>(null)
   const engine = useRef<Engine | null>(null)
@@ -284,6 +307,7 @@ function PlayerSession({ channel, channels }: { channel: NumberedChannel; channe
           </span>
           <span className="dim">{groupOf(channel)}</span>
         </div>
+        <NowNext programmes={programmes} />
       </div>
 
       <div className="player-bottom">
@@ -347,7 +371,8 @@ function PlayerSession({ channel, channels }: { channel: NumberedChannel; channe
 export function PlayerView() {
   const channelId = usePlayer((s) => s.channelId)
   const channels = useChannels()
+  const programmes = useChannelProgrammes()
   const channel = channelId ? channels.find((c) => c.id === channelId) : undefined
   if (!channel) return null
-  return <PlayerSession key={channel.id} channel={channel} channels={channels} />
+  return <PlayerSession key={channel.id} channel={channel} channels={channels} programmes={programmes.get(channel.id)} />
 }

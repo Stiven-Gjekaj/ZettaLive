@@ -9,6 +9,8 @@ import { useNavigation } from '../ui/route'
 import { useHealth } from '../player/health'
 import { usePlayer } from '../player/player'
 import { knownBlock } from '../player/stream'
+import { nowAndNext, type Programme } from '../guide/xmltv'
+import { useChannelProgrammes, useNow } from '../guide/useGuide'
 
 const ROW = 64
 
@@ -29,10 +31,11 @@ interface RowProps {
   favourite: boolean
   hidden: boolean
   blocked: boolean
+  now?: Programme
   onPlay: (channel: NumberedChannel) => void
 }
 
-function ChannelRow({ channel, favourite, hidden, blocked, onPlay }: RowProps) {
+function ChannelRow({ channel, favourite, hidden, blocked, now, onPlay }: RowProps) {
   const { toggleFavourite, setChannelHidden } = useLibrary.getState()
   return (
     <div className="channel-row">
@@ -43,7 +46,7 @@ function ChannelRow({ channel, favourite, hidden, blocked, onPlay }: RowProps) {
           <span className="channel-name">{channel.name}</span>
           <span className="channel-group dim">
             {blocked && <span className="badge">Cannot play here</span>}
-            {groupOf(channel)}
+            {now ? `Now: ${now.title}` : groupOf(channel)}
           </span>
         </span>
       </button>
@@ -75,6 +78,8 @@ export function LiveScreen() {
   const [filter, setFilter] = useState<ChannelFilter>({ kind: 'all' })
   const [query, setQuery] = useState('')
   const blocked = useHealth((s) => s.blocked)
+  const programmes = useChannelProgrammes()
+  const time = useNow()
 
   const groups = useMemo(() => groupsOf(channels), [channels])
   const shown = useMemo(
@@ -156,6 +161,7 @@ export function LiveScreen() {
               favourite={favouriteSet.has(c.id)}
               hidden={isHidden(c, hiddenGroups, hiddenChannels)}
               blocked={Boolean(blocked[c.id] ?? knownBlock(c))}
+              now={nowAndNext(programmes.get(c.id), time).now}
               onPlay={(picked) => usePlayer.getState().open(picked.id, shown.map((x) => x.id))}
             />
           )}

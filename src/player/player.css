@@ -107,3 +107,15 @@
     display: none;
   }
 }
+
+.player-guide {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.player-guide p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
