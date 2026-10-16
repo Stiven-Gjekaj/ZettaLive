@@ -74,3 +74,12 @@ Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
   It shows that such a channel cannot play in a browser.
 - Reason: HTTPS keeps the installable PWA and needs no server. In a test on
   2026-10-16, 33 of 47 live IPTV channels played this way.
+
+## 2026-10-17: GitHub Pages and version numbers
+
+- GitHub Pages serves the app at `https://stiven-gjekaj.github.io/ZettaLive/`.
+- A tag such as `v0.1.0` builds the app, puts it on Pages, and makes a
+  release on GitHub.
+- Each phase of the roadmap gives one release. The phases give 0.1.0 to
+  0.6.0. The last phase gives 1.0.0.
+- Reason: Pages is free, it serves over HTTPS, and it needs no server.
