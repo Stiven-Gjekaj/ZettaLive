@@ -15,3 +15,7 @@ coverage/
 .idea/
 .vscode/
 .DS_Store
+
+# Local tool settings
+.claude/
+dev-dist/
