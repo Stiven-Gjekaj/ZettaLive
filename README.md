@@ -29,6 +29,18 @@ Open the link above. To install it as an app:
 - On an iPhone, tap Share, then "Add to Home Screen".
 - On Android, open the browser menu, then tap "Install app".
 
+## Keys and gestures
+
+| Key or gesture | Action |
+|---|---|
+| Down or Page Down, swipe up | Next channel |
+| Up or Page Up, swipe down | Previous channel |
+| `0` to `9`, then wait or press Enter | Go to the channel number |
+| Space or `K` | Play or pause |
+| `M` | Mute |
+| `F` | Full screen |
+| Escape | Back to the list |
+
 ## Build it yourself
 
 You need Node.js 24 or newer.
