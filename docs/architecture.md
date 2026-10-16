@@ -109,6 +109,21 @@ of a playlist from a file, but not the saved copies of URLs and guides,
 because the app loads them again. A restore replaces all stored values, then
 the page loads again.
 
+## Extras
+
+`player/catchup.ts` builds the URL of a past programme from the `catchup`,
+`catchup-source`, and `catchup-days` attributes of a channel. It knows the
+kinds `append`, `shift`, `default`, `flussonic`, and `xc`. The guide offers
+"Watch from the start" for a past programme in the days of the channel.
+
+`iptv/xtream.ts` makes the playlist URL and the guide URL of an Xtream Codes
+account. The playlist asks for HLS, because a browser can play it.
+
+The player has picture in picture, and it gives the lock screen of a phone
+the channel, the programme, and the next and previous actions (Media
+Session). The video filters of `player/filters.ts` are CSS filters with an
+overlay for the lines, the grain, and the dark corners.
+
 ## The installable app
 
 `vite-plugin-pwa` makes the web manifest and a service worker. The service
