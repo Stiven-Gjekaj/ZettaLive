@@ -4,12 +4,6 @@ Each phase gives a version that operates. Do the phases in this order.
 A task leaves this list when its release is out. The reason for each choice
 is in [docs/decisions.md](docs/decisions.md).
 
-## Choices to make first
-
-- How the app plays a cleartext `http://` stream and a stream that needs a
-  header: hide it, ask the user to allow insecure content, a companion
-  browser extension, or a relay.
-
 ## 1. The base
 
 - A React and TypeScript project that Vite builds.
@@ -42,6 +36,8 @@ is in [docs/decisions.md](docs/decisions.md).
 - Play a raw MPEG-TS stream with mpegts.js.
 - Change the audio track and the quality.
 - Start the stream again when it stops.
+- Mark a channel that a browser cannot play: a cleartext `http://` stream,
+  a stream with no CORS headers, or a stream that needs a header.
 - Go to the next or the previous channel. Type a number to go to a channel.
 - Keyboard keys on a desktop, and swipes on a phone.
 
