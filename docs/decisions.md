@@ -31,3 +31,18 @@ Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
   HTTP URL.
 - A stream with an HTTP URL plays, also when a debrid service makes that URL
   from a torrent.
+
+## 2026-10-17: Stack
+
+- The app is React with TypeScript. Vite builds it.
+- Reason: React has the largest set of libraries for a video app, such as
+  hls.js, dash.js, and a PWA plugin. TypeScript lets other parts of the
+  project share the parsers of addons, M3U playlists, and XMLTV guides.
+
+## 2026-10-17: The library stays in the browser
+
+- The watchlist, the history, the profiles, and the settings stay in the
+  browser of each device.
+- There is no sync between devices. A backup file moves the library to a
+  different device.
+- Reason: this is the simplest choice. It needs no server and no account.
