@@ -42,7 +42,9 @@ function PlaylistCard({ source }: { source: PlaylistSource }) {
       ) : (
         <h2>{source.name}</h2>
       )}
-      <p className="dim">{source.url ?? 'From a file'}</p>
+      <p className="dim">
+        {source.xtream ? `Xtream Codes account ${source.xtream.username} on ${source.xtream.server}` : (source.url ?? 'From a file')}
+      </p>
       <p>{status(result)}</p>
       {result?.error && <p className="error">{result.error}</p>}
       <div className="row">
@@ -153,6 +155,57 @@ function GuidesSection() {
   )
 }
 
+/** A form for the server, the user name, and the password of an Xtream Codes account. */
+function XtreamForm() {
+  const [server, setServer] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [problem, setProblem] = useState('')
+
+  const add = (e: FormEvent) => {
+    e.preventDefault()
+    if (!server.trim() || !username.trim() || !password) return setProblem('Type the server, the user name, and the password.')
+    if (isBlockedCleartext(server)) return setProblem('The server starts with http://. A browser cannot load it from an HTTPS page. Use https://.')
+    setProblem('')
+    void usePlaylists.getState().addXtream({ server, username, password })
+    setServer('')
+    setUsername('')
+    setPassword('')
+  }
+
+  return (
+    <details className="card">
+      <summary>Add an Xtream Codes account</summary>
+      <form className="stack list-gap" onSubmit={add} noValidate>
+        <p className="dim">The app keeps the account in this browser only.</p>
+        <input className="input" aria-label="Server" placeholder="Server, such as https://provider.example:8080" value={server} onChange={(e) => setServer(e.target.value)} />
+        <div className="row">
+          <input className="input grow" aria-label="User name" placeholder="User name" autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <input
+            className="input grow"
+            aria-label="Password"
+            placeholder="Password"
+            type="password"
+            autoComplete="off"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div className="row">
+          <button className="button button-primary" type="submit">
+            Add account
+          </button>
+        </div>
+        {problem && (
+          <p className="error" role="alert">
+            {problem}
+          </p>
+        )}
+      </form>
+    </details>
+  )
+}
+
 /** The user adds, loads again, renames, and removes playlists here. */
 export function PlaylistsScreen() {
   const sources = usePlaylists((s) => s.sources)
@@ -225,6 +278,9 @@ export function PlaylistsScreen() {
             {problem}
           </p>
         )}
+      </div>
+      <div className="list-gap">
+        <XtreamForm />
       </div>
       <h2 className="list-title">Your playlists</h2>
       {sources.length === 0 ? (

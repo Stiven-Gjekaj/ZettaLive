@@ -77,3 +77,12 @@ test('makes a name from a URL', () => {
   expect(nameFromUrl('https://provider.example/get.php?user=a&type=m3u')).toBe('provider.example')
   expect(nameFromUrl('not a url')).toBe('not a url')
 })
+
+test('adds an Xtream Codes account, with the guide of the account', async () => {
+  const playlist = 'https://tv.example/get.php?username=me&password=pw&type=m3u_plus&output=m3u8'
+  const store = createPlaylists(server({ [playlist]: LIST }))
+  await store.getState().addXtream({ server: 'tv.example/', username: ' me ', password: 'pw' })
+  const [source] = store.getState().sources
+  expect(source).toMatchObject({ name: 'tv.example', url: playlist, xtream: { server: 'tv.example/', username: 'me', password: 'pw' } })
+  expect(store.getState().results[source!.id]?.guideUrls).toEqual(['https://g.example/epg.xml', 'https://tv.example/xmltv.php?username=me&password=pw'])
+})

@@ -54,3 +54,14 @@ test('adds a guide URL and shows how many channels it has', async () => {
   await waitFor(() => expect(within(card).getByText(/channels with programmes|channel with programmes/)).toBeTruthy())
   expect(within(card).getByRole('button', { name: 'Remove' })).toBeTruthy()
 })
+
+test('adds an Xtream Codes account, and does not show its password', async () => {
+  render(<PlaylistsScreen />)
+  fireEvent.change(screen.getByLabelText('Server'), { target: { value: 'tv.example' } })
+  fireEvent.change(screen.getByLabelText('User name'), { target: { value: 'me' } })
+  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Add account' }))
+  const card = await screen.findByRole('listitem', { name: 'tv.example' })
+  expect(within(card).getByText('Xtream Codes account me on tv.example')).toBeTruthy()
+  expect(card.textContent).not.toContain('secret')
+})

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { del, get, set } from 'idb-keyval'
 import { LoadError, fetchText, readFileText } from './fetchText'
 import { isM3u, parseM3u, type Channel } from './m3u'
+import { xtreamName, xtreamUrls, type XtreamAccount } from './xtream'
 
 /** A playlist that the user added. */
 export interface PlaylistSource {
@@ -9,6 +10,8 @@ export interface PlaylistSource {
   name: string
   /** The URL of a playlist that the app reads again at each start. */
   url?: string
+  /** The account of a playlist from an Xtream Codes provider. The URL comes from it. */
+  xtream?: XtreamAccount
   addedAt: number
 }
 
@@ -37,6 +40,7 @@ export interface Playlists {
   start: () => Promise<void>
   addUrl: (url: string, name?: string) => Promise<void>
   addFile: (file: File) => Promise<void>
+  addXtream: (account: XtreamAccount, name?: string) => Promise<void>
   rename: (id: string, name: string) => Promise<void>
   reload: (id: string) => Promise<void>
   remove: (id: string) => Promise<void>
@@ -56,6 +60,13 @@ export function nameFromUrl(url: string): string {
 function parse(text: string, id: string): Pick<PlaylistResult, 'channels' | 'guideUrls'> {
   if (!isM3u(text)) throw new LoadError('The file is not an M3U playlist.')
   return parseM3u(text, id)
+}
+
+/** Adds the guide of an Xtream Codes account to the guides of its playlist. */
+function withAccountGuide<T extends Pick<PlaylistResult, 'guideUrls'>>(parsed: T, source: PlaylistSource): T {
+  if (!source.xtream) return parsed
+  const guide = xtreamUrls(source.xtream).guide
+  return parsed.guideUrls.includes(guide) ? parsed : { ...parsed, guideUrls: [...parsed.guideUrls, guide] }
 }
 
 export function createPlaylists(fetcher: typeof fetch = (...args) => fetch(...args)) {
@@ -78,13 +89,13 @@ export function createPlaylists(fetcher: typeof fetch = (...args) => fetch(...ar
       }
       try {
         const text = await fetchText(source.url, fetcher)
-        const parsed = parse(text, source.id)
+        const parsed = withAccountGuide(parse(text, source.id), source)
         const savedAt = Date.now()
         await set(textKey(source.id), { text, savedAt } satisfies SavedText)
         setResult(source.id, { status: 'ready', ...parsed, savedAt })
       } catch (e) {
         const error = e instanceof LoadError ? e.message : 'The playlist could not be read.'
-        if (saved) setResult(source.id, { status: 'ready', ...parse(saved.text, source.id), savedAt: saved.savedAt, error })
+        if (saved) setResult(source.id, { status: 'ready', ...withAccountGuide(parse(saved.text, source.id), source), savedAt: saved.savedAt, error })
         else setResult(source.id, { status: 'failed', channels: [], guideUrls: [], error })
       }
     }
@@ -121,6 +132,21 @@ export function createPlaylists(fetcher: typeof fetch = (...args) => fetch(...ar
           throw e instanceof LoadError ? e : new LoadError('The file could not be read.')
         }
         await set(textKey(source.id), { text, savedAt: Date.now() } satisfies SavedText)
+        const sources = [...getState().sources, source]
+        setState({ sources })
+        await saveSources(sources)
+        await load(source)
+      },
+
+      async addXtream(account, name) {
+        const clean = { server: account.server.trim(), username: account.username.trim(), password: account.password }
+        const source: PlaylistSource = {
+          id: crypto.randomUUID(),
+          name: name?.trim() || xtreamName(clean),
+          url: xtreamUrls(clean).playlist,
+          xtream: clean,
+          addedAt: Date.now(),
+        }
         const sources = [...getState().sources, source]
         setState({ sources })
         await saveSources(sources)
