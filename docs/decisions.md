@@ -62,3 +62,15 @@ Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
 - Reason: Stremio Web already covers the addons in a browser. Most addon
   streams need a relay, and a browser cannot set their headers. In a test on
   2026-10-16, 33 of 47 live IPTV channels played in a browser with no help.
+
+## 2026-10-17: HTTPS only, with no relay
+
+- This choice closes the open choice in "A web IPTV player".
+- The app is served over HTTPS only.
+- The app plays HLS with hls.js and a raw MPEG-TS stream with mpegts.js.
+- There is no relay and no browser extension.
+- The app does not play a cleartext `http://` stream, a stream that sends no
+  CORS headers, or a stream that needs a header that a browser cannot set.
+  It shows that such a channel cannot play in a browser.
+- Reason: HTTPS keeps the installable PWA and needs no server. In a test on
+  2026-10-16, 33 of 47 live IPTV channels played this way.
