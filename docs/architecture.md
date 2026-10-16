@@ -10,7 +10,8 @@ src/
   App.tsx        the root of the interface: the navigation and the open screen
   main.tsx       the start of the app
   theme/         the colours, the font, and the base styles
-  iptv/          playlists: the M3U reader, the loader, and the playlist store
+  iptv/          playlists and channels: the M3U reader, the loader, the stores
+  library/       the favourites and the hidden channels and groups of a profile
   ui/            the navigation and the shared parts of the interface
   screens/       one file for each screen
 public/
@@ -40,6 +41,19 @@ HTTPS page, because the browser blocks it. It unzips a gzip file.
 `#EXTGRP` group, the `#EXTVLCOPT` user agent and referrer, and the guide URLs
 of the header. Each channel gets a key from its URL and its name, so the key
 stays the same when the playlist loads again.
+
+## Channels
+
+`iptv/useChannels.ts` joins the channels of all playlists in the order of
+the playlists. `iptv/channels.ts` gives each channel a number: the
+`tvg-chno` attribute, or else the next free number. It also groups, searches,
+and filters the channels. A search ignores case and accents.
+
+`library/library.ts` keeps the favourites, the hidden channels, and the
+hidden groups in IndexedDB, under one key for each profile.
+
+`ui/VirtualList.tsx` draws only the rows near the visible part of the list,
+so a playlist with thousands of channels stays fast on a phone.
 
 ## The installable app
 
