@@ -2,12 +2,14 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { clear } from 'idb-keyval'
 import { usePlaylists } from '../iptv/playlists'
 import { PlaylistsScreen } from './PlaylistsScreen'
+import { useGuides } from '../guide/guides'
 
 const LIST = '#EXTM3U\n#EXTINF:-1,One\nhttps://s.example/1.m3u8\n#EXTINF:-1,Two\nhttps://s.example/2.m3u8\n'
 
 beforeEach(async () => {
   await clear()
   usePlaylists.setState({ sources: [], results: {}, started: false })
+  useGuides.setState({ sources: [], results: {} })
   vi.stubGlobal('fetch', async () => new Response(LIST))
 })
 
@@ -41,4 +43,14 @@ test('removes a playlist after the user confirms', async () => {
   render(<PlaylistsScreen />)
   fireEvent.click(within(screen.getByRole('listitem', { name: 'uk' })).getByRole('button', { name: 'Remove' }))
   await waitFor(() => expect(screen.queryByRole('listitem')).toBeNull())
+})
+
+test('adds a guide URL and shows how many channels it has', async () => {
+  vi.stubGlobal('fetch', async () => new Response('<tv><programme start="20990101000000" stop="20990101010000" channel="x"><title>T</title></programme></tv>'))
+  render(<PlaylistsScreen />)
+  fireEvent.change(screen.getByLabelText('Add an XMLTV guide from a URL'), { target: { value: 'https://g.example/e.xml' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Add guide' }))
+  const card = await screen.findByRole('listitem', { name: 'https://g.example/e.xml' })
+  await waitFor(() => expect(within(card).getByText(/channels with programmes|channel with programmes/)).toBeTruthy())
+  expect(within(card).getByRole('button', { name: 'Remove' })).toBeTruthy()
 })

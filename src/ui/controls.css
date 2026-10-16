@@ -106,3 +106,7 @@ p {
 .card .dim {
   overflow-wrap: anywhere;
 }
+
+.list-gap {
+  margin-top: 12px;
+}

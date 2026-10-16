@@ -1,6 +1,8 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { LoadError, isBlockedCleartext } from '../iptv/fetchText'
 import { usePlaylists, type PlaylistResult, type PlaylistSource } from '../iptv/playlists'
+import { useGuides, type GuideResult } from '../guide/guides'
+import { useGuideUrls } from '../guide/useGuide'
 
 function time(ms: number | undefined): string {
   return ms ? new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''
@@ -63,6 +65,91 @@ function PlaylistCard({ source }: { source: PlaylistSource }) {
         </button>
       </div>
     </li>
+  )
+}
+
+function guideStatus(result: GuideResult | undefined): string {
+  if (!result || result.status === 'loading') return 'Loading...'
+  if (result.status === 'failed' || !result.guide) return 'Not loaded'
+  const count = Object.keys(result.guide.programmes).length
+  const text = `${count} ${count === 1 ? 'channel' : 'channels'} with programmes`
+  return result.error ? `${text}, from the copy of ${time(result.savedAt)}` : `${text}, updated ${time(result.savedAt)}`
+}
+
+/** The guides of the playlists and the guides that the user added. */
+function GuidesSection() {
+  const urls = useGuideUrls()
+  const own = useGuides((s) => s.sources)
+  const results = useGuides((s) => s.results)
+  const [url, setUrl] = useState('')
+  const [problem, setProblem] = useState('')
+
+  const add = (e: FormEvent) => {
+    e.preventDefault()
+    const clean = url.trim()
+    if (!/^https?:\/\/\S+$/i.test(clean)) return setProblem('Type a URL that starts with https://.')
+    if (isBlockedCleartext(clean)) return setProblem('The URL starts with http://. A browser cannot load it from an HTTPS page. Use an https:// URL.')
+    setProblem('')
+    setUrl('')
+    void useGuides.getState().addUrl(clean)
+  }
+
+  return (
+    <>
+      <h2 className="list-title">Guides</h2>
+      <form className="card stack" onSubmit={add} noValidate>
+        <label htmlFor="guide-url">Add an XMLTV guide from a URL</label>
+        <div className="row">
+          <input
+            id="guide-url"
+            className="input grow"
+            type="url"
+            inputMode="url"
+            placeholder="https://example.com/guide.xml.gz"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+          <button className="button button-primary" type="submit">
+            Add guide
+          </button>
+        </div>
+        {problem && (
+          <p className="error" role="alert">
+            {problem}
+          </p>
+        )}
+      </form>
+      {urls.length === 0 ? (
+        <p className="dim list-gap">You have no guides. A playlist can also name its guide.</p>
+      ) : (
+        <ul className="stack plain-list list-gap">
+          {urls.map((u) => {
+            const mine = own.find((s) => s.url === u)
+            const result = results[u]
+            return (
+              <li key={u} className="card stack" aria-label={u}>
+                <p className="dim">{u}</p>
+                <p>
+                  {guideStatus(result)}
+                  {!mine && <span className="dim"> (named by a playlist)</span>}
+                </p>
+                {result?.error && <p className="error">{result.error}</p>}
+                <div className="row">
+                  <button className="button button-small" type="button" disabled={result?.status === 'loading'} onClick={() => void useGuides.getState().reload(u)}>
+                    Load again
+                  </button>
+                  {mine && (
+                    <button className="button button-small" type="button" onClick={() => void useGuides.getState().remove(mine.id)}>
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </>
   )
 }
 
@@ -149,6 +236,7 @@ export function PlaylistsScreen() {
           ))}
         </ul>
       )}
+      <GuidesSection />
     </section>
   )
 }
