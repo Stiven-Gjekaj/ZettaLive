@@ -1,9 +1,10 @@
 # Decisions
 
-This file records each choice that the owner makes for ZettaWeb.
+This file records each choice that the owner makes for ZettaLive. The
+project started as ZettaWeb.
 Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
 
-## 2026-10-16: Scope
+## 2026-10-16: Scope (replaced on 2026-10-17, see "A web IPTV player")
 
 - ZettaWeb is a web app in the Zetta family. ZettaStream is the Android app.
 - It operates on a desktop browser and on a phone browser.
@@ -11,7 +12,7 @@ Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
   browser.
 - Reason: ZettaStream is Android only. An iPhone and a PC have no Zetta app.
 
-## 2026-10-16: A relay for streams
+## 2026-10-16: A relay for streams (replaced on 2026-10-17, see "A web IPTV player")
 
 - A small relay server sends the stream requests for the browser.
 - The relay adds the headers that an addon asks for, such as `Referer` and
@@ -23,7 +24,7 @@ Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
   48 of 105 HTTP addon streams need a header that a browser cannot set, and
   14 of 105 use cleartext HTTP. An HTTPS page cannot load a cleartext stream.
 
-## 2026-10-17: No torrents
+## 2026-10-17: No torrents (replaced on 2026-10-17, see "A web IPTV player")
 
 - ZettaWeb plays no torrents.
 - ZettaWeb and its relay contain no torrent engine.
@@ -46,3 +47,18 @@ Add a new choice at the end. Do not remove an old choice. Mark it as replaced.
 - There is no sync between devices. A backup file moves the library to a
   different device.
 - Reason: this is the simplest choice. It needs no server and no account.
+
+## 2026-10-17: A web IPTV player
+
+- This choice replaces "Scope", "A relay for streams", and "No torrents".
+- The project is ZettaLive. It was ZettaWeb.
+- ZettaLive is a web IPTV player in the Zetta family. It plays M3U playlists
+  with an XMLTV guide.
+- It operates on a desktop browser and on a phone browser.
+- It does not read Stremio addons. It plays no torrents.
+- The app comes with no channels. Each user adds their own playlists.
+- How the app plays a cleartext `http://` stream, or a stream that needs a
+  header, is an open choice.
+- Reason: Stremio Web already covers the addons in a browser. Most addon
+  streams need a relay, and a browser cannot set their headers. In a test on
+  2026-10-16, 33 of 47 live IPTV channels played in a browser with no help.
