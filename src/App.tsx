@@ -6,6 +6,8 @@ import { PlaylistsScreen } from './screens/PlaylistsScreen'
 import { LiveScreen } from './screens/LiveScreen'
 import { useLibrary } from './library/library'
 import './screens/live.css'
+import { PlayerView } from './player/PlayerView'
+import './player/player.css'
 import { usePlaylists } from './iptv/playlists'
 import './ui/layout.css'
 import './ui/controls.css'
@@ -26,6 +28,7 @@ export function App() {
         {screen === 'playlists' && <PlaylistsScreen />}
         {screen === 'settings' && <Placeholder title="Settings" text="The settings of the app show here." />}
       </main>
+      <PlayerView />
     </div>
   )
 }
