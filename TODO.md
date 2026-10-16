@@ -4,16 +4,6 @@ Each phase gives a version that operates. Do the phases in this order.
 A task leaves this list when its release is out. The reason for each choice
 is in [docs/decisions.md](docs/decisions.md).
 
-## 2. Playlists
-
-- Add a playlist from a URL or from a file.
-- Read the `#EXTINF` attributes: `tvg-id`, `tvg-name`, `tvg-logo`,
-  `group-title`, and `tvg-chno`.
-- Read the `#EXTVLCOPT` lines for the user agent and the referrer.
-- Read the guide URL from the `url-tvg` attribute of the playlist header.
-- Keep the playlists in the browser. Read them again at each start.
-- Show each playlist that fails, and the reason.
-
 ## 3. Channels
 
 - The channel list, with groups, logos, and numbers.
