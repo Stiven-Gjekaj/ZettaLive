@@ -2,12 +2,14 @@ import { useEffect } from 'react'
 import { useGuides } from './guide/guides'
 import { useGuideSync } from './guide/useGuide'
 import { usePlaylists } from './iptv/playlists'
-import { useLibrary } from './library/library'
+import { useProfiles } from './library/profiles'
+import { useSettings } from './library/settings'
 import { PlayerView } from './player/PlayerView'
 import { GuideScreen } from './screens/GuideScreen'
 import { LiveScreen } from './screens/LiveScreen'
-import { Placeholder } from './screens/Placeholder'
 import { PlaylistsScreen } from './screens/PlaylistsScreen'
+import { ProfilePicker } from './screens/ProfilePicker'
+import { SettingsScreen } from './screens/SettingsScreen'
 import { Navigation } from './ui/Navigation'
 import { useNavigation } from './ui/route'
 import './ui/layout.css'
@@ -15,14 +17,19 @@ import './ui/controls.css'
 import './screens/live.css'
 import './screens/guide.css'
 import './player/player.css'
+import './screens/settings.css'
 
 /** The root of the interface: the navigation and the open screen. */
 export function App() {
   const screen = useNavigation((s) => s.screen)
   useEffect(() => {
     void usePlaylists.getState().start()
-    void useLibrary.getState().load('default')
     void useGuides.getState().start()
+    // Open the start screen of the profile once its settings are loaded.
+    void useProfiles
+      .getState()
+      .start()
+      .then(() => useNavigation.getState().open(useSettings.getState().startScreen))
   }, [])
   useGuideSync()
   return (
@@ -32,9 +39,10 @@ export function App() {
         {screen === 'live' && <LiveScreen />}
         {screen === 'guide' && <GuideScreen />}
         {screen === 'playlists' && <PlaylistsScreen />}
-        {screen === 'settings' && <Placeholder title="Settings" text="The settings of the app show here." />}
+        {screen === 'settings' && <SettingsScreen />}
       </main>
       <PlayerView />
+      <ProfilePicker />
     </div>
   )
 }
