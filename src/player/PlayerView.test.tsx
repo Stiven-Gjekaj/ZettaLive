@@ -118,6 +118,24 @@ test('plays a catch-up URL with its title, and does not mark the channel when it
   expect(usePlayer.getState().catchup).toBeUndefined()
 })
 
+test('gives the lock screen the channel and its next and previous actions', async () => {
+  const handlers = new Map<string, (() => void) | null>()
+  const session = { metadata: null as unknown, setActionHandler: (a: string, h: (() => void) | null) => handlers.set(a, h) }
+  vi.stubGlobal('navigator', { mediaSession: session })
+  vi.stubGlobal(
+    'MediaMetadata',
+    class {
+      constructor(public init: { title: string; artist: string }) {}
+    },
+  )
+  usePlayer.getState().open('a', ['a', 'b'])
+  render(<PlayerView />)
+  await act(async () => {})
+  expect((session.metadata as { init: { title: string } }).init).toMatchObject({ title: 'One', artist: 'One' })
+  act(() => handlers.get('nexttrack')?.())
+  expect(title()).toBe('2 Two')
+})
+
 test('opens picture in picture when the browser has it', async () => {
   const request = vi.fn(async () => ({}) as PictureInPictureWindow)
   Object.defineProperty(document, 'pictureInPictureEnabled', { configurable: true, value: true })

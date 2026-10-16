@@ -236,6 +236,44 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
       element.webkitSetPresentationMode(element.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture')
   }, [])
 
+  // The lock screen of a phone and the media keys of a keyboard.
+  const time = useNow()
+  const nowTitle = nowAndNext(programmes, time).now?.title
+  useEffect(() => {
+    const session = typeof navigator !== 'undefined' ? navigator.mediaSession : undefined
+    if (!session) return
+    if (typeof MediaMetadata !== 'undefined') {
+      session.metadata = new MediaMetadata({
+        title: catchup?.title ?? nowTitle ?? channel.name,
+        artist: channel.name,
+        album: 'ZettaLive',
+        artwork: channel.logo ? [{ src: channel.logo }] : [],
+      })
+    }
+    const actions: [MediaSessionAction, MediaSessionActionHandler][] = [
+      ['play', () => void video.current?.play().catch(() => {})],
+      ['pause', () => video.current?.pause()],
+      ['nexttrack', () => step(1)],
+      ['previoustrack', () => step(-1)],
+    ]
+    for (const [action, handler] of actions) {
+      try {
+        session.setActionHandler(action, handler)
+      } catch {
+        // The browser does not know this action.
+      }
+    }
+    return () => {
+      for (const [action] of actions) {
+        try {
+          session.setActionHandler(action, null)
+        } catch {
+          // The browser does not know this action.
+        }
+      }
+    }
+  }, [channel.name, channel.logo, catchup?.title, nowTitle, step])
+
   const canPip =
     typeof document !== 'undefined' &&
     (document.pictureInPictureEnabled || 'webkitSetPresentationMode' in HTMLVideoElement.prototype)
