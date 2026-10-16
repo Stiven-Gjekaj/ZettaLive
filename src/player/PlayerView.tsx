@@ -140,6 +140,7 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
         },
       },
       () => played.current,
+      () => !cancelled,
     ).then((e) => {
       if (cancelled) e.destroy()
       else {

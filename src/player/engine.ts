@@ -78,12 +78,17 @@ function startNative(video: HTMLVideoElement, url: string, events: EngineEvents,
   }
 }
 
-async function startHls(video: HTMLVideoElement, url: string, events: EngineEvents, played: () => boolean): Promise<Engine> {
+/** An engine that does nothing. The player gets it when the session ended while the engine loaded. */
+const IDLE: Engine = { ...NONE, destroy() {} }
+
+async function startHls(video: HTMLVideoElement, url: string, events: EngineEvents, played: () => boolean, alive: () => boolean): Promise<Engine> {
   const { default: Hls } = await import('hls.js')
+  // Do not touch the video when the session ended while hls.js loaded.
+  if (!alive()) return IDLE
   if (!Hls.isSupported()) {
     if (playsHlsNatively(video)) return startNative(video, url, events, played)
     events.onStop('format')
-    return { ...NONE, destroy() {} }
+    return IDLE
   }
   const hls = new Hls({ lowLatencyMode: true, backBufferLength: 30 })
   let mediaRetried = false
@@ -121,11 +126,12 @@ async function startHls(video: HTMLVideoElement, url: string, events: EngineEven
   }
 }
 
-async function startMpegts(video: HTMLVideoElement, url: string, events: EngineEvents, played: () => boolean): Promise<Engine> {
+async function startMpegts(video: HTMLVideoElement, url: string, events: EngineEvents, played: () => boolean, alive: () => boolean): Promise<Engine> {
   const { default: mpegts } = await import('mpegts.js')
+  if (!alive()) return IDLE
   if (!mpegts.isSupported() || !mpegts.getFeatureList().mseLivePlayback) {
     events.onStop('format')
-    return { ...NONE, destroy() {} }
+    return IDLE
   }
   const player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url }, { liveBufferLatencyChasing: true, enableWorker: true })
   player.on(mpegts.Events.ERROR, (type: string) => {
@@ -143,9 +149,20 @@ async function startMpegts(video: HTMLVideoElement, url: string, events: EngineE
   }
 }
 
-/** Starts a stream in the video element with the right engine. */
-export function startEngine(video: HTMLVideoElement, url: string, kind: StreamKind, events: EngineEvents, played: () => boolean): Promise<Engine> {
+/**
+ * Starts a stream in the video element with the right engine. `alive` is
+ * false when the session ended before the engine loaded. Then the engine does
+ * not touch the video, which a newer session can use already.
+ */
+export function startEngine(
+  video: HTMLVideoElement,
+  url: string,
+  kind: StreamKind,
+  events: EngineEvents,
+  played: () => boolean,
+  alive: () => boolean = () => true,
+): Promise<Engine> {
   if (kind === 'file') return Promise.resolve(startNative(video, url, events, played))
-  if (kind === 'mpegts') return startMpegts(video, url, events, played)
-  return startHls(video, url, events, played)
+  if (kind === 'mpegts') return startMpegts(video, url, events, played, alive)
+  return startHls(video, url, events, played, alive)
 }
