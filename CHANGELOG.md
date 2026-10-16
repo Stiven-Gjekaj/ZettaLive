@@ -8,6 +8,16 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 0.6.0 (2026-10-17)
+
+- Recent channels: the channels that you watched last, in their own filter.
+- Profiles: each person has a picture, favourites, recent channels, and
+  settings. With more than one profile, the app asks "Who is watching?".
+- Settings: hide the channels that cannot play in a browser, and choose the
+  screen at the start.
+- Backup: save your playlists, guides, profiles, and settings to a file, and
+  restore them on a different device.
+
 ## 0.5.0 (2026-10-17)
 
 - The guide: the app reads the XMLTV guide that a playlist names, and the

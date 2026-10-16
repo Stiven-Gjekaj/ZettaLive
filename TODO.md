@@ -4,13 +4,6 @@ Each phase gives a version that operates. Do the phases in this order.
 A task leaves this list when its release is out. The reason for each choice
 is in [docs/decisions.md](docs/decisions.md).
 
-## 6. The library
-
-- Recent channels.
-- Profiles: each person has a picture, favourites, and settings.
-- Back up the playlists, the favourites, and the settings to a file, and
-  restore them.
-
 ## 7. Extras
 
 - Picture in picture.
