@@ -1,0 +1,108 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--outline);
+  border-radius: var(--corner);
+  background: var(--surface-high);
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.button:hover {
+  border-color: var(--text-dim);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.button-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.button-small {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 14px;
+}
+
+.input {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--outline);
+  border-radius: var(--corner);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.input::placeholder {
+  color: var(--text-dim);
+}
+
+.card {
+  padding: 16px;
+  border: 1px solid var(--outline);
+  border-radius: var(--corner);
+  background: var(--surface);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.grow {
+  flex: 1 1 200px;
+}
+
+.screen-title {
+  margin-bottom: 20px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.plain-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list-title {
+  margin: 28px 0 12px;
+  font-size: 18px;
+}
+
+p {
+  margin: 0;
+}
+
+.card .dim {
+  overflow-wrap: anywhere;
+}
