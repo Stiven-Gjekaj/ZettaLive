@@ -8,6 +8,17 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 0.4.0 (2026-10-17)
+
+- The player: tap a channel to watch it. HLS plays with hls.js, MPEG-TS with
+  mpegts.js, and Safari on an iPhone plays HLS itself.
+- Change the audio track and the quality, when the stream has more than one.
+- When a stream stops, the player connects again up to three times.
+- Go to the next or the previous channel with the arrow keys or a swipe.
+  Type a number to go to a channel.
+- A channel that a browser cannot play shows the reason, and the list marks
+  it with "Cannot play here".
+
 ## 0.3.0 (2026-10-17)
 
 - Live TV: the channels of all your playlists, with their logos, numbers,
