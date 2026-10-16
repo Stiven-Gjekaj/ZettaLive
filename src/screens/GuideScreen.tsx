@@ -2,6 +2,9 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { isHidden, type NumberedChannel } from '../iptv/channels'
 import { useChannels } from '../iptv/useChannels'
 import { useLibrary } from '../library/library'
+import { useSettings } from '../library/settings'
+import { useHealth } from '../player/health'
+import { knownBlock } from '../player/stream'
 import { usePlayer } from '../player/player'
 import { clock, useChannelProgrammes, useNow } from '../guide/useGuide'
 import type { Programme } from '../guide/xmltv'
@@ -35,6 +38,8 @@ export function GuideScreen() {
   const favourites = useLibrary((s) => s.favourites)
   const hiddenGroups = useLibrary((s) => s.hiddenGroups)
   const hiddenChannels = useLibrary((s) => s.hiddenChannels)
+  const hideBlocked = useSettings((s) => s.hideBlocked)
+  const blocked = useHealth((s) => s.blocked)
   const [onlyFavourites, setOnlyFavourites] = useState(false)
   const [picked, setPicked] = useState<Picked>()
   const [view, setView] = useState({ top: 0, left: 0, width: 1200, height: 800 })
@@ -48,9 +53,13 @@ export function GuideScreen() {
   const rows = useMemo(() => {
     const favouriteSet = new Set(favourites)
     return channels.filter(
-      (c) => programmes.has(c.id) && !isHidden(c, hiddenGroups, hiddenChannels) && (!onlyFavourites || favouriteSet.has(c.id)),
+      (c) =>
+        programmes.has(c.id) &&
+        !isHidden(c, hiddenGroups, hiddenChannels) &&
+        (!onlyFavourites || favouriteSet.has(c.id)) &&
+        !(hideBlocked && (blocked[c.id] ?? knownBlock(c))),
     )
-  }, [channels, programmes, favourites, hiddenGroups, hiddenChannels, onlyFavourites])
+  }, [channels, programmes, favourites, hiddenGroups, hiddenChannels, onlyFavourites, hideBlocked, blocked])
 
   // Show the time of now near the left edge at the start.
   useLayoutEffect(() => {

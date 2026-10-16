@@ -3,6 +3,7 @@ import { NO_GROUP, groupOf, groupsOf, isHidden, listChannels, type ChannelFilter
 import { usePlaylists } from '../iptv/playlists'
 import { useChannels } from '../iptv/useChannels'
 import { useLibrary } from '../library/library'
+import { useSettings } from '../library/settings'
 import { ChannelLogo } from '../ui/ChannelLogo'
 import { VirtualList } from '../ui/VirtualList'
 import { useNavigation } from '../ui/route'
@@ -79,13 +80,23 @@ export function LiveScreen() {
   const [filter, setFilter] = useState<ChannelFilter>({ kind: 'all' })
   const [query, setQuery] = useState('')
   const blocked = useHealth((s) => s.blocked)
+  const hideBlocked = useSettings((s) => s.hideBlocked)
   const programmes = useChannelProgrammes()
   const time = useNow()
 
   const groups = useMemo(() => groupsOf(channels), [channels])
   const shown = useMemo(
-    () => listChannels(channels, { filter, query, favourites, hiddenGroups, hiddenChannels, recents }),
-    [channels, filter, query, favourites, hiddenGroups, hiddenChannels, recents],
+    () =>
+      listChannels(channels, {
+        filter,
+        query,
+        favourites,
+        hiddenGroups,
+        hiddenChannels,
+        recents,
+        skip: hideBlocked ? (c) => Boolean(blocked[c.id] ?? knownBlock(c)) : undefined,
+      }),
+    [channels, filter, query, favourites, hiddenGroups, hiddenChannels, recents, hideBlocked, blocked],
   )
   const favouriteSet = useMemo(() => new Set(favourites), [favourites])
   const hiddenCount = useMemo(() => channels.filter((c) => isHidden(c, hiddenGroups, hiddenChannels)).length, [channels, hiddenGroups, hiddenChannels])
