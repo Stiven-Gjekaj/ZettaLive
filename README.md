@@ -1,26 +1,23 @@
-# ZettaWeb
+# ZettaLive
 
-Anime, movies, series, and live TV in one web app for desktop and phone.
+Live TV from your IPTV playlists, in the browser, on desktop and phone.
 
-ZettaWeb plays your Stremio addons and IPTV playlists in the browser. It is
-the web member of the Zetta family. ZettaStream is the Android app.
+ZettaLive plays M3U playlists with an XMLTV guide. It is the web IPTV player
+of the Zetta family. ZettaStream is the Android app.
 
-The app comes with no sources. You add your own list.
-
-ZettaWeb plays no torrents. A stream that has an HTTP link plays. This
-includes a link that a debrid service gives.
+The app comes with no channels. You add your own playlists.
 
 ## Status
 
-ZettaWeb is in planning. [TODO.md](TODO.md) is the roadmap.
+ZettaLive is in planning. [TODO.md](TODO.md) is the roadmap.
 [docs/decisions.md](docs/decisions.md) records each choice and its reason.
 
 ## Repository description
 
-Anime, movies, series, and live TV in one web app. Plays Stremio addons and
-IPTV playlists in the browser, on desktop and phone.
+Live TV from your IPTV playlists in the browser. Plays M3U playlists with an
+XMLTV guide, on desktop and phone.
 
 ## Repository topics
 
-`anime`, `movies`, `tv-shows`, `streaming`, `stremio`, `stremio-addons`,
-`iptv`, `live-tv`, `m3u`, `xmltv`, `hls`, `pwa`, `web-app`, `video-player`
+`iptv`, `iptv-player`, `live-tv`, `m3u`, `m3u8`, `xmltv`, `epg`, `hls`,
+`video-player`, `pwa`, `web-app`, `react`, `typescript`, `vite`
