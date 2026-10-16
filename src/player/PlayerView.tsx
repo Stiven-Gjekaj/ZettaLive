@@ -15,10 +15,12 @@ import { BLOCK_TEXT, knownBlock, streamKind, type BlockReason, type StreamKind }
 
 const MAX_RETRIES = 3
 const STALL_MS = 20_000
+/** A stream that does not start in this time starts again one time, then gets a mark. */
+export const START_MS = 20_000
 const ENTRY_MS = 1500
 const CONTROLS_MS = 3500
 
-type Status = 'loading' | 'playing' | 'paused' | 'reconnecting' | 'blocked'
+type Status = 'loading' | 'playing' | 'paused' | 'reconnecting' | 'blocked' | 'tap'
 
 interface Tracks {
   audio: Track[]
@@ -77,6 +79,7 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
   const engine = useRef<Engine | null>(null)
   const played = useRef(false)
   const retries = useRef(0)
+  const waitsForTap = useRef(false)
   const known = knownBlock({ ...channel, url })
   const [status, setStatus] = useState<Status>(known ? 'blocked' : 'loading')
   const [reason, setReason] = useState<BlockReason | undefined>(known)
@@ -144,8 +147,17 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
         refresh()
       }
     })
+    // A stream that never starts must not wait for ever.
+    const startTimer = setTimeout(() => {
+      if (cancelled || played.current || waitsForTap.current) return
+      if (retries.current >= 1) return block('network')
+      retries.current++
+      setStatus('reconnecting')
+      setAttempt((a) => a + 1)
+    }, START_MS)
     return () => {
       cancelled = true
+      clearTimeout(startTimer)
       engine.current?.destroy()
       engine.current = null
     }
@@ -173,12 +185,24 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
     }
     const onPause = () => setStatus((s) => (s === 'playing' ? 'paused' : s))
     const onVolume = () => setMuted(element.muted)
+    // When the browser does not allow sound before a tap, the user taps Play.
+    const onCanPlay = () => {
+      if (!element.paused || played.current) return
+      element.play().catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === 'NotAllowedError') {
+          waitsForTap.current = true
+          setStatus('tap')
+        }
+      })
+    }
+    element.addEventListener('canplay', onCanPlay)
     element.addEventListener('playing', onPlaying)
     element.addEventListener('waiting', onWaiting)
     element.addEventListener('pause', onPause)
     element.addEventListener('volumechange', onVolume)
     return () => {
       clearTimeout(stall)
+      element.removeEventListener('canplay', onCanPlay)
       element.removeEventListener('playing', onPlaying)
       element.removeEventListener('waiting', onWaiting)
       element.removeEventListener('pause', onPause)
@@ -353,6 +377,10 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
             </button>
           </div>
         </div>
+      ) : status === 'tap' ? (
+        <button type="button" className="button button-primary player-tap" onClick={togglePlay}>
+          Play
+        </button>
       ) : (
         statusText && (
           <p className="player-status" role="status">

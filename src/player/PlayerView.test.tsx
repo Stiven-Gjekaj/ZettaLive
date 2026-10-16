@@ -4,7 +4,7 @@ import { usePlaylists } from '../iptv/playlists'
 import type { EngineEvents } from './engine'
 import { useHealth } from './health'
 import { usePlayer } from './player'
-import { PlayerView } from './PlayerView'
+import { PlayerView, START_MS } from './PlayerView'
 import { EMPTY_LIBRARY, useLibrary } from '../library/library'
 import { useSettings } from '../library/settings'
 
@@ -159,3 +159,30 @@ test('changes the video filter and keeps it in the settings', async () => {
   expect(document.querySelector('.player-overlay')).toBeTruthy()
 })
 
+test('starts a stream again when it does not start, then marks it', async () => {
+  vi.useFakeTimers()
+  try {
+    usePlayer.getState().open('a', ['a'])
+    render(<PlayerView />)
+    await act(async () => {})
+    expect(started).toHaveLength(1)
+    await act(async () => vi.advanceTimersByTime(START_MS))
+    expect(started).toHaveLength(2)
+    expect(screen.getByRole('status').textContent).toContain('Connecting again')
+    await act(async () => vi.advanceTimersByTime(START_MS))
+    expect(screen.getByRole('alert').textContent).toContain('cannot play')
+    expect(useHealth.getState().blocked).toEqual({ a: 'network' })
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+test('shows a Play button when the browser does not allow autoplay', async () => {
+  const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(new DOMException('No', 'NotAllowedError'))
+  usePlayer.getState().open('a', ['a'])
+  render(<PlayerView />)
+  await act(async () => {})
+  await act(async () => fireEvent(document.querySelector('video')!, new Event('canplay')))
+  expect(screen.getByRole('button', { name: 'Play' })).toBeTruthy()
+  play.mockRestore()
+})
