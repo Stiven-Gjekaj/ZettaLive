@@ -8,6 +8,16 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 0.3.0 (2026-10-17)
+
+- Live TV: the channels of all your playlists, with their logos, numbers,
+  and groups.
+- Search the channels by name or by number. A search ignores case and
+  accents.
+- Favourite channels, with their own filter.
+- Hide a channel or a whole group. The Hidden filter shows them again.
+- A long playlist stays fast: the list draws only the rows that you see.
+
 ## 0.2.0 (2026-10-17)
 
 - Playlists: add an M3U playlist from a URL or from a file. A gzip file

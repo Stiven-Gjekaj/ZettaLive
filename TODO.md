@@ -4,13 +4,6 @@ Each phase gives a version that operates. Do the phases in this order.
 A task leaves this list when its release is out. The reason for each choice
 is in [docs/decisions.md](docs/decisions.md).
 
-## 3. Channels
-
-- The channel list, with groups, logos, and numbers.
-- Search the channels by name.
-- Favourite channels.
-- Hide a group or a channel.
-
 ## 4. The player
 
 - Play HLS with hls.js. Safari on an iPhone plays HLS natively.
