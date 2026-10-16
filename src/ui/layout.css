@@ -1,0 +1,82 @@
+.app {
+  display: grid;
+  grid-template-columns: var(--rail) 1fr;
+  height: 100%;
+}
+
+.main {
+  overflow: auto;
+  padding: 24px 32px;
+  min-width: 0;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 8px;
+  border-right: 1px solid var(--outline);
+  background: var(--background);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0;
+  border: 0;
+  border-radius: var(--corner);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.nav-item:hover {
+  color: var(--text);
+  background: var(--surface-high);
+}
+
+.nav-item[aria-current='page'] {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.nav-label {
+  display: none;
+  font-size: 11px;
+}
+
+/* A phone: the bar goes to the bottom and shows the labels. */
+@media (max-width: 720px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr calc(var(--tabs) + env(safe-area-inset-bottom));
+  }
+
+  .main {
+    padding: 16px;
+  }
+
+  .nav {
+    grid-row: 2;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 4px 8px env(safe-area-inset-bottom);
+    border-right: 0;
+    border-top: 1px solid var(--outline);
+  }
+
+  .nav-item {
+    flex: 1;
+    padding: 6px 0;
+  }
+
+  .nav-item[aria-current='page'] {
+    color: var(--text);
+    background: transparent;
+  }
+
+  .nav-label {
+    display: block;
+  }
+}

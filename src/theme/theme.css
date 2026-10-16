@@ -67,3 +67,7 @@ h3 {
   margin: 0;
   font-weight: 700;
 }
+
+.dim {
+  color: var(--text-dim);
+}
