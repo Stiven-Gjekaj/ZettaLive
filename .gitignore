@@ -1,0 +1,17 @@
+# Local secrets
+.env
+.env.*
+
+# Private notes that must not be public
+private/
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+
+# Editors and the OS
+.idea/
+.vscode/
+.DS_Store
