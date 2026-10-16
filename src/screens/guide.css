@@ -1,0 +1,136 @@
+.guide-grid {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border-top: 1px solid var(--outline);
+}
+
+.guide-canvas {
+  position: relative;
+}
+
+.guide-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--background);
+  border-bottom: 1px solid var(--outline);
+}
+
+.guide-corner {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  height: 100%;
+  background: var(--background);
+}
+
+.guide-slot {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  padding: 6px 8px;
+  border-left: 1px solid var(--surface-high);
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.guide-now {
+  position: absolute;
+  z-index: 2;
+  width: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.guide-row {
+  position: absolute;
+  left: 0;
+  border-bottom: 1px solid var(--surface-high);
+}
+
+.guide-channel {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--outline);
+  background: var(--background);
+  text-align: left;
+}
+
+.guide-programme {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 8px;
+  border: 1px solid var(--outline);
+  border-radius: 6px;
+  background: var(--surface);
+  text-align: left;
+  font-size: 13px;
+}
+
+.guide-programme.live {
+  border-color: var(--text-dim);
+  background: var(--surface-high);
+}
+
+.guide-programme:hover {
+  border-color: var(--accent);
+}
+
+.guide-programme-title {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sheet {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(460px, calc(100vw - 32px));
+  max-height: 70vh;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--outline);
+  border-radius: var(--corner);
+  background: var(--surface);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.6);
+}
+
+.sheet-text {
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .guide-channel {
+    width: 112px !important;
+  }
+
+  .guide-channel .channel-name {
+    font-size: 13px;
+  }
+
+  .sheet {
+    right: 8px;
+    bottom: calc(var(--tabs) + 8px + env(safe-area-inset-bottom));
+    width: calc(100vw - 16px);
+  }
+}
