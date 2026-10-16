@@ -6,79 +6,64 @@ is in [docs/decisions.md](docs/decisions.md).
 
 ## Choices to make first
 
-- The front-end stack and the build tool.
-- The runtime of the relay, and how a user runs it (a container, a Worker,
-  or a program on a home computer).
-- Where the library lives: in the browser only, or also on the relay so that
-  a phone and a PC share it.
+- How the app plays a cleartext `http://` stream and a stream that needs a
+  header: hide it, ask the user to allow insecure content, a companion
+  browser extension, or a relay.
 
 ## 1. The base
 
-- The project skeleton, the linter, the tests, and CI on GitHub Actions.
-- The theme from ZettaStream: black and white, with the Karla font.
+- A React and TypeScript project that Vite builds.
+- The linter, the tests, and CI on GitHub Actions.
+- The theme of the Zetta family: black and white, with the Karla font.
 - A layout for each device: a slim icon bar on a desktop, a tab bar on a
   phone.
 - An installable PWA with a manifest and an icon.
 
-## 2. Sources
+## 2. Playlists
 
-- A Sources screen. The user pastes URLs, one on each line.
-- Find the kind of each line from its shape: an addon manifest, an M3U
-  playlist, or an XMLTV guide.
-- Keep the list in the browser.
-- Read each manifest. Show each source that fails.
+- Add a playlist from a URL or from a file.
+- Read the `#EXTINF` attributes: `tvg-id`, `tvg-name`, `tvg-logo`,
+  `group-title`, and `tvg-chno`.
+- Read the `#EXTVLCOPT` lines for the user agent and the referrer.
+- Read the guide URL from the `url-tvg` attribute of the playlist header.
+- Keep the playlists in the browser. Read them again at each start.
+- Show each playlist that fails, and the reason.
 
-## 3. Browse
+## 3. Channels
 
-- Home rows from the catalogs of each addon, with a banner of featured
-  titles.
-- A title page: the art, the facts, the seasons, and the episodes.
-- Search in all addons at the same time.
-- "Explore more" opens all titles of a row in a grid.
-
-## 4. The relay
-
-- A small server that the user runs.
-- It adds the headers that an addon asks for, such as `Referer` and
-  `User-Agent`.
-- It serves each stream over HTTPS with CORS headers.
-- It changes the links in an HLS playlist so that each request goes through
-  the relay.
-- A token in the app setting. The relay refuses a request without the token.
-- The app uses the relay only for a stream that needs it.
-
-## 5. The player
-
-- Play MP4 and WebM directly, HLS with hls.js, and DASH with dash.js.
-  Safari on an iPhone plays HLS natively.
-- The stream list, with badges for quality, HDR, and dual audio.
-- Hide a stream that the browser cannot decode, such as HEVC or DTS.
-- Hide a stream that has only a torrent `infoHash`.
-- Play starts the best 1080p stream. When a stream fails, the next best
-  stream starts.
-- Subtitles from the stream and from subtitle addons. Change SRT to WebVTT.
-- Change the subtitle track and the audio track.
-- Keyboard keys on a desktop, and touch controls on a phone.
-
-## 6. Live TV
-
-- Channels from M3U playlists, with groups.
-- Now and next from an XMLTV guide.
+- The channel list, with groups, logos, and numbers.
+- Search the channels by name.
 - Favourite channels.
+- Hide a group or a channel.
+
+## 4. The player
+
+- Play HLS with hls.js. Safari on an iPhone plays HLS natively.
+- Play a raw MPEG-TS stream with mpegts.js.
+- Change the audio track and the quality.
+- Start the stream again when it stops.
+- Go to the next or the previous channel. Type a number to go to a channel.
+- Keyboard keys on a desktop, and swipes on a phone.
+
+## 5. The guide
+
+- Read XMLTV guides, also when they are compressed with gzip.
+- Match each channel to the guide by `tvg-id`, then by name.
+- Now and next on each channel.
 - A guide grid.
 
-## 7. The library
+## 6. The library
 
-- Continue watching, a watchlist, and watched marks.
-- The next episode to watch, and a "New episodes" row.
-- Profiles: each person has a picture, a history, a watchlist, and
-  settings.
-- Back up the library and the settings to a file, and restore them.
+- Recent channels.
+- Profiles: each person has a picture, favourites, and settings.
+- Back up the playlists, the favourites, and the settings to a file, and
+  restore them.
 
-## 8. Extras
+## 7. Extras
 
-- Skip the intro of an anime episode, from AniSkip.
 - Picture in picture.
 - Media Session controls on the lock screen of a phone.
+- Catch-up TV for a channel that has a `catchup` attribute.
+- Xtream Codes accounts as a second kind of playlist.
 - The video filters of ZettaStream: CRT, VHS, vintage film, and black and
   white.
