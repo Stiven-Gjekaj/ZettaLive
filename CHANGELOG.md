@@ -8,6 +8,19 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 0.5.0 (2026-10-17)
+
+- The guide: the app reads the XMLTV guide that a playlist names, and the
+  guides that you add on the Playlists screen. A gzip guide also works.
+- The Guide screen shows 24 hours of programmes. Tap a programme to read its
+  details and watch its channel.
+- The channel list and the player show the programme that is on now, and the
+  player also shows the next one.
+- The app finds the programmes of a channel by its `tvg-id`, and else by its
+  name.
+- A guide loads again after six hours. When it fails, the app uses its saved
+  copy.
+
 ## 0.4.0 (2026-10-17)
 
 - The player: tap a channel to watch it. HLS plays with hls.js, MPEG-TS with
