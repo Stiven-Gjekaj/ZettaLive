@@ -5,6 +5,7 @@ import type { EngineEvents } from './engine'
 import { useHealth } from './health'
 import { usePlayer } from './player'
 import { PlayerView } from './PlayerView'
+import { EMPTY_LIBRARY, useLibrary } from '../library/library'
 
 const started: { url: string; kind: string; events: EngineEvents }[] = []
 
@@ -92,4 +93,15 @@ test('closes with Escape', async () => {
   fireEvent.keyDown(window, { key: 'Escape' })
   expect(usePlayer.getState().channelId).toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('adds a channel to the recent channels when it plays', async () => {
+  useLibrary.setState({ ...EMPTY_LIBRARY, profileId: 'default' })
+  usePlayer.getState().open('a', ['a'])
+  render(<PlayerView />)
+  await act(async () => {})
+  expect(useLibrary.getState().recents).toEqual([])
+  fireEvent(document.querySelector('video')!, new Event('playing'))
+  expect(useLibrary.getState().recents).toEqual(['a'])
+  expect(screen.queryByRole('status')).toBeNull()
 })

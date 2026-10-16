@@ -6,6 +6,7 @@ import { clock, useChannelProgrammes, useNow } from '../guide/useGuide'
 import { nowAndNext, type Programme } from '../guide/xmltv'
 import { startEngine, type Engine, type Track } from './engine'
 import { useHealth } from './health'
+import { useLibrary } from '../library/library'
 import { addDigit, entryNumber, stepIn, type NumberEntry } from './numberEntry'
 import { usePlayer } from './player'
 import { BLOCK_TEXT, knownBlock, streamKind, type BlockReason, type StreamKind } from './stream'
@@ -149,6 +150,7 @@ function PlayerSession({ channel, channels, programmes }: { channel: NumberedCha
       retries.current = 0
       setStatus('playing')
       useHealth.getState().clear(channel.id)
+      useLibrary.getState().addRecent(channel.id)
     }
     const onWaiting = () => {
       clearTimeout(stall)

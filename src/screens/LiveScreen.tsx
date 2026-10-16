@@ -75,6 +75,7 @@ export function LiveScreen() {
   const favourites = useLibrary((s) => s.favourites)
   const hiddenGroups = useLibrary((s) => s.hiddenGroups)
   const hiddenChannels = useLibrary((s) => s.hiddenChannels)
+  const recents = useLibrary((s) => s.recents)
   const [filter, setFilter] = useState<ChannelFilter>({ kind: 'all' })
   const [query, setQuery] = useState('')
   const blocked = useHealth((s) => s.blocked)
@@ -83,8 +84,8 @@ export function LiveScreen() {
 
   const groups = useMemo(() => groupsOf(channels), [channels])
   const shown = useMemo(
-    () => listChannels(channels, { filter, query, favourites, hiddenGroups, hiddenChannels }),
-    [channels, filter, query, favourites, hiddenGroups, hiddenChannels],
+    () => listChannels(channels, { filter, query, favourites, hiddenGroups, hiddenChannels, recents }),
+    [channels, filter, query, favourites, hiddenGroups, hiddenChannels, recents],
   )
   const favouriteSet = useMemo(() => new Set(favourites), [favourites])
   const hiddenCount = useMemo(() => channels.filter((c) => isHidden(c, hiddenGroups, hiddenChannels)).length, [channels, hiddenGroups, hiddenChannels])
@@ -117,6 +118,7 @@ export function LiveScreen() {
       <div className="chips" aria-label="Filters">
         <Chip filter={{ kind: 'all' }} current={filter} label="All" onPick={setFilter} />
         <Chip filter={{ kind: 'favourites' }} current={filter} label="Favourites" onPick={setFilter} />
+        <Chip filter={{ kind: 'recent' }} current={filter} label="Recent" onPick={setFilter} />
         {visibleGroups.map((g) => (
           <Chip key={g} filter={{ kind: 'group', group: g }} current={filter} label={g} onPick={setFilter} />
         ))}
@@ -148,7 +150,13 @@ export function LiveScreen() {
         </div>
       )}
       {shown.length === 0 ? (
-        <p className="dim empty">{loading ? 'Loading the channels...' : filter.kind === 'favourites' && !query ? 'You have no favourite channels. Tap the star of a channel.' : 'No channel matches.'}</p>
+        <p className="dim empty">{loading
+            ? 'Loading the channels...'
+            : filter.kind === 'favourites' && !query
+              ? 'You have no favourite channels. Tap the star of a channel.'
+              : filter.kind === 'recent' && !query
+                ? 'The channels that you watch show here.'
+                : 'No channel matches.'}</p>
       ) : (
         <VirtualList
           label="Channels"

@@ -79,3 +79,11 @@ test('opens the player with the shown list, and marks a channel that cannot play
   expect(usePlayer.getState()).toMatchObject({ channelId: 'c', order: ['a', 'c'] })
   expect(screen.getAllByText('Cannot play here')).toHaveLength(1)
 })
+
+test('lists the recent channels, newest first', () => {
+  setChannels([channel('a', 'BBC One', 'News'), channel('b', 'Film Four', 'Films'), channel('c', 'Sky News', 'News')])
+  useLibrary.setState({ recents: ['c', 'a'] })
+  render(<LiveScreen />)
+  fireEvent.click(screen.getByRole('button', { name: 'Recent' }))
+  expect(rows()).toEqual(['Sky News', 'BBC One'])
+})

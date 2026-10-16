@@ -50,3 +50,10 @@ test('hides a channel or a group everywhere, and shows them in the hidden filter
   expect(names(listChannels(CHANNELS, options({ ...hiding, filter: { kind: 'favourites' }, favourites: ['a', 'c'] })))).toEqual(['Sky News'])
   expect(names(listChannels(CHANNELS, options({ ...hiding, filter: { kind: 'hidden' } })))).toEqual(['BBC One', 'Café TV'])
 })
+
+test('lists the recent channels in their order, and skips the channels that the caller asks', () => {
+  expect(names(listChannels(CHANNELS, options({ filter: { kind: 'recent' }, recents: ['c', 'x', 'a'] })))).toEqual(['Sky News', 'BBC One'])
+  expect(names(listChannels(CHANNELS, options({ filter: { kind: 'recent' }, recents: ['c', 'a'], hiddenChannels: ['a'] })))).toEqual(['Sky News'])
+  expect(names(listChannels(CHANNELS, options({ skip: (c) => c.id === 'b' })))).toEqual(['BBC One', 'Sky News', 'No Group'])
+  expect(names(listChannels(CHANNELS, options({ filter: { kind: 'recent' }, recents: ['b', 'c'], skip: (c) => c.id === 'b' })))).toEqual(['Sky News'])
+})

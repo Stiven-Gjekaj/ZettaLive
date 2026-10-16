@@ -6,7 +6,7 @@ export interface NumberedChannel extends Channel {
 }
 
 /** The filter of the channel list. */
-export type ChannelFilter = { kind: 'all' } | { kind: 'favourites' } | { kind: 'hidden' } | { kind: 'group'; group: string }
+export type ChannelFilter = { kind: 'all' } | { kind: 'favourites' } | { kind: 'recent' } | { kind: 'hidden' } | { kind: 'group'; group: string }
 
 export interface ListOptions {
   filter: ChannelFilter
@@ -14,6 +14,10 @@ export interface ListOptions {
   favourites: readonly string[]
   hiddenGroups: readonly string[]
   hiddenChannels: readonly string[]
+  /** The recent channels, newest first. The recent filter keeps this order. */
+  recents?: readonly string[]
+  /** Channels that the list does not show, such as channels that cannot play. */
+  skip?: (channel: Channel) => boolean
 }
 
 export const NO_GROUP = 'Other'
@@ -58,7 +62,15 @@ export function listChannels<T extends NumberedChannel>(channels: readonly T[], 
   const { filter, favourites, hiddenGroups, hiddenChannels } = options
   const query = fold(options.query.trim())
   const favouriteSet = new Set(favourites)
+  if (filter.kind === 'recent') {
+    const byId = new Map(channels.map((c) => [c.id, c]))
+    return (options.recents ?? []).flatMap((id) => {
+      const c = byId.get(id)
+      return c && !isHidden(c, hiddenGroups, hiddenChannels) && !options.skip?.(c) && (!query || fold(c.name).includes(query)) ? [c] : []
+    })
+  }
   return channels.filter((c) => {
+    if (options.skip?.(c) && filter.kind !== 'hidden') return false
     const hidden = isHidden(c, hiddenGroups, hiddenChannels)
     if (filter.kind === 'hidden' ? !hidden : hidden) return false
     if (filter.kind === 'favourites' && !favouriteSet.has(c.id)) return false
