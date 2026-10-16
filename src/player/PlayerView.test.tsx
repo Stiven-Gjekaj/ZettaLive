@@ -117,3 +117,15 @@ test('plays a catch-up URL with its title, and does not mark the channel when it
   fireEvent.keyDown(window, { key: 'ArrowDown' })
   expect(usePlayer.getState().catchup).toBeUndefined()
 })
+
+test('opens picture in picture when the browser has it', async () => {
+  const request = vi.fn(async () => ({}) as PictureInPictureWindow)
+  Object.defineProperty(document, 'pictureInPictureEnabled', { configurable: true, value: true })
+  HTMLVideoElement.prototype.requestPictureInPicture = request
+  usePlayer.getState().open('a', ['a'])
+  render(<PlayerView />)
+  fireEvent.click(screen.getByRole('button', { name: 'Picture in picture' }))
+  fireEvent.keyDown(window, { key: 'p' })
+  expect(request).toHaveBeenCalledTimes(2)
+  Object.defineProperty(document, 'pictureInPictureEnabled', { configurable: true, value: false })
+})

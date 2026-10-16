@@ -227,6 +227,19 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
     if (element) element.muted = !element.muted
   }, [])
 
+  const togglePip = useCallback(() => {
+    const element = video.current as (HTMLVideoElement & { webkitSetPresentationMode?: (mode: string) => void; webkitPresentationMode?: string }) | null
+    if (!element) return
+    if (document.pictureInPictureElement) void document.exitPictureInPicture().catch(() => {})
+    else if (document.pictureInPictureEnabled && element.requestPictureInPicture) void element.requestPictureInPicture().catch(() => {})
+    else if (element.webkitSetPresentationMode)
+      element.webkitSetPresentationMode(element.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture')
+  }, [])
+
+  const canPip =
+    typeof document !== 'undefined' &&
+    (document.pictureInPictureEnabled || 'webkitSetPresentationMode' in HTMLVideoElement.prototype)
+
   const toggleFullscreen = useCallback(() => {
     const element = video.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null
     if (document.fullscreenElement) void document.exitFullscreen()
@@ -246,13 +259,14 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
       else if (e.key === ' ' || e.key === 'k') togglePlay()
       else if (e.key === 'm') toggleMute()
       else if (e.key === 'f') toggleFullscreen()
+      else if (e.key === 'p') togglePip()
       else if (e.key === 'Escape' && !document.fullscreenElement) close()
       else return
       e.preventDefault()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [entry, commitEntry, step, togglePlay, toggleMute, toggleFullscreen, close])
+  }, [entry, commitEntry, step, togglePlay, toggleMute, toggleFullscreen, togglePip, close])
 
   // A swipe on a phone: up for the next channel, down for the previous one.
   const touchY = useRef<number | null>(null)
@@ -369,6 +383,11 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
               </option>
             ))}
           </select>
+        )}
+        {canPip && (
+          <button type="button" className="button button-small" onClick={togglePip}>
+            Picture in picture
+          </button>
         )}
         <button type="button" className="button button-small" onClick={toggleFullscreen}>
           Full screen
