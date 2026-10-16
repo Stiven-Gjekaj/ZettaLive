@@ -7,6 +7,8 @@ import { nowAndNext, type Programme } from '../guide/xmltv'
 import { startEngine, type Engine, type Track } from './engine'
 import { useHealth } from './health'
 import { useLibrary } from '../library/library'
+import { useSettings } from '../library/settings'
+import { FILTERS, isFilter } from './filters'
 import { addDigit, entryNumber, stepIn, type NumberEntry } from './numberEntry'
 import { usePlayer, type CatchupPlay } from './player'
 import { BLOCK_TEXT, knownBlock, streamKind, type BlockReason, type StreamKind } from './stream'
@@ -87,6 +89,7 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
   const [notice, setNotice] = useState('')
   const step = useStep(channel.id)
   const close = usePlayer((s) => s.close)
+  const filter = useSettings((s) => s.filter)
 
   const block = useCallback(
     (why: BlockReason) => {
@@ -327,7 +330,7 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
   return (
     <div
       ref={box}
-      className={`player${controls ? ' show-controls' : ''}`}
+      className={`player filter-${filter}${controls ? ' show-controls' : ''}`}
       role="dialog"
       aria-label={`Playing ${channel.name}`}
       onMouseMove={() => setControls(true)}
@@ -335,6 +338,7 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
       onTouchEnd={onTouchEnd}
     >
       <video ref={video} className="player-video" playsInline autoPlay onClick={() => setControls((c) => !c)} />
+      {filter !== 'none' && <div className="player-overlay" aria-hidden="true" />}
 
       {status === 'blocked' && reason ? (
         <div className="player-message" role="alert">
@@ -422,6 +426,18 @@ function PlayerSession({ channel, channels, programmes, catchup }: SessionProps)
             ))}
           </select>
         )}
+        <select
+          className="input select"
+          aria-label="Filter"
+          value={filter}
+          onChange={(e) => isFilter(e.target.value) && useSettings.getState().change({ filter: e.target.value })}
+        >
+          {FILTERS.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </select>
         {canPip && (
           <button type="button" className="button button-small" onClick={togglePip}>
             Picture in picture

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { get, set } from 'idb-keyval'
+import { isFilter, type VideoFilter } from '../player/filters'
 
 /** The settings of one profile. */
 export interface SettingsData {
@@ -7,9 +8,11 @@ export interface SettingsData {
   hideBlocked: boolean
   /** The screen that opens at the start. */
   startScreen: 'live' | 'guide'
+  /** The look of the video. */
+  filter: VideoFilter
 }
 
-export const DEFAULT_SETTINGS: SettingsData = { hideBlocked: false, startScreen: 'live' }
+export const DEFAULT_SETTINGS: SettingsData = { hideBlocked: false, startScreen: 'live', filter: 'none' }
 
 export const settingsKey = (profileId: string) => `settings:${profileId}`
 
@@ -25,12 +28,14 @@ export function createSettings() {
     profileId: 'default',
     async load(profileId) {
       const data = (await get<Partial<SettingsData>>(settingsKey(profileId))) ?? {}
-      setState({ ...DEFAULT_SETTINGS, ...data, profileId })
+      // A filter that this version does not know falls back to no filter.
+      const filter = isFilter(data.filter) ? data.filter : 'none'
+      setState({ ...DEFAULT_SETTINGS, ...data, filter, profileId })
     },
     change(change) {
       setState(change)
-      const { profileId, hideBlocked, startScreen } = getState()
-      void set(settingsKey(profileId), { hideBlocked, startScreen } satisfies SettingsData)
+      const { profileId, hideBlocked, startScreen, filter } = getState()
+      void set(settingsKey(profileId), { hideBlocked, startScreen, filter } satisfies SettingsData)
     },
   }))
 }

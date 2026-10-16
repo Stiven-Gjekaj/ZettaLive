@@ -6,6 +6,7 @@ import { useHealth } from './health'
 import { usePlayer } from './player'
 import { PlayerView } from './PlayerView'
 import { EMPTY_LIBRARY, useLibrary } from '../library/library'
+import { useSettings } from '../library/settings'
 
 const started: { url: string; kind: string; events: EngineEvents }[] = []
 
@@ -147,3 +148,14 @@ test('opens picture in picture when the browser has it', async () => {
   expect(request).toHaveBeenCalledTimes(2)
   Object.defineProperty(document, 'pictureInPictureEnabled', { configurable: true, value: false })
 })
+
+test('changes the video filter and keeps it in the settings', async () => {
+  useSettings.setState({ filter: 'none' })
+  usePlayer.getState().open('a', ['a'])
+  render(<PlayerView />)
+  fireEvent.change(screen.getByLabelText('Filter'), { target: { value: 'crt' } })
+  expect(useSettings.getState().filter).toBe('crt')
+  expect(screen.getByRole('dialog').className).toContain('filter-crt')
+  expect(document.querySelector('.player-overlay')).toBeTruthy()
+})
+

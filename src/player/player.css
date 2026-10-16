@@ -119,3 +119,66 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* The video filters. The overlay draws the lines, the grain, and the dark corners. */
+.player-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.filter-mono .player-video {
+  filter: grayscale(1) contrast(1.15);
+}
+
+.filter-vintage .player-video {
+  filter: sepia(0.55) saturate(0.8) contrast(1.1) brightness(0.95);
+}
+
+.filter-vintage .player-overlay {
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgb(20 10 0 / 0.55) 100%),
+    repeating-radial-gradient(circle at 30% 40%, rgb(255 255 255 / 0.03) 0 1px, transparent 1px 3px);
+  animation: grain 0.4s steps(2) infinite;
+}
+
+.filter-vhs .player-video {
+  filter: saturate(1.45) contrast(1.15) hue-rotate(-6deg) blur(0.5px);
+}
+
+.filter-vhs .player-overlay {
+  background:
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, rgb(255 0 60 / 0.06), transparent 30%, transparent 70%, rgb(0 140 255 / 0.06));
+  animation: vhs-roll 6s linear infinite;
+}
+
+.filter-crt .player-video {
+  filter: contrast(1.25) saturate(1.25) brightness(1.05);
+  border-radius: 28px;
+}
+
+.filter-crt .player-overlay {
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.45) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.75) 100%);
+  border-radius: 28px;
+}
+
+@keyframes grain {
+  to {
+    transform: translate(1px, -1px);
+  }
+}
+
+@keyframes vhs-roll {
+  to {
+    background-position: 0 120px, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-overlay {
+    animation: none !important;
+  }
+}
