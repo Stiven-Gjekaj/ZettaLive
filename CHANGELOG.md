@@ -8,6 +8,18 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 1.1.0 (2026-10-17)
+
+- Paste a whole list into the Playlists box, with one URL on each line. The
+  app adds each M3U playlist and each XMLTV guide, and says what it added
+  and what it skipped. Notes that start with `#`, copies, Stremio addons,
+  and `http://` URLs do not cause errors.
+- The guides that a playlist names load four at a time. The ones that fail
+  show as one group, so a playlist that names a hundred guides does not fill
+  the screen.
+- A playlist on GitHub with a common file name, such as `playlist.m3u8`,
+  gets the name of its owner.
+
 ## 1.0.0 (2026-10-17)
 
 - Catch-up TV: on a channel with catch-up, tap a past programme in the guide
