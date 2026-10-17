@@ -43,6 +43,18 @@ Open the link above. To install it as an app:
 - On an iPhone, tap Share, then "Add to Home Screen".
 - On Android, open the browser menu, then tap "Install app".
 
+## Add your sources
+
+Open Playlists and paste your list into the box: one URL on each line. The
+app finds the M3U playlists and the XMLTV guides by themselves. A line that
+starts with `#` is a note, and a Stremio addon URL is skipped. For example:
+
+    # IPTV playlists
+    https://iptv-org.github.io/iptv/countries/al.m3u
+    https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8
+    # TV guide
+    https://raw.githubusercontent.com/doms9/iptv/refs/heads/default/M3U8/TV.xml
+
 ## Keys and gestures
 
 | Key or gesture | Action |
