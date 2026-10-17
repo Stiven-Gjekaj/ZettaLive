@@ -8,6 +8,18 @@ change that breaks the backup raises the major number.
 A tag such as `v0.1.0` builds the app, puts it on GitHub Pages, and makes a
 release on GitHub with the built app as a zip file.
 
+## 1.2.0 (2026-10-17)
+
+- A guide that failed does not load again at a start for six hours. With the
+  Free-TV playlist, this stops about a hundred failed requests at each start.
+  "Load again" still tries it at once.
+- The guides load in the background (a Web Worker). A large guide does not
+  stop the page while it loads.
+- The app matches the channels to the guides only when a guide loads, and
+  all screens share the result.
+- The HLS player loads in the background after the start, so the first
+  channel starts sooner. It does not load when the browser saves data.
+
 ## 1.1.0 (2026-10-17)
 
 - Paste a whole list into the Playlists box, with one URL on each line. The
