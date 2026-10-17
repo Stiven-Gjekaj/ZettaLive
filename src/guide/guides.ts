@@ -31,6 +31,9 @@ export const FRESH_MS = 6 * 3600_000
 export const PAST_MS = 3 * 3600_000
 /** The app keeps the programmes until this time after now. */
 export const FUTURE_MS = 36 * 3600_000
+/** The number of guides that load at the same time. A playlist can name many guides. */
+export const PARALLEL = 4
+
 /** A guide file larger than this is too large for a browser. */
 export const MAX_CHARS = 150_000_000
 
@@ -86,7 +89,15 @@ export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args)
 
       async sync(urls) {
         const todo = [...new Set(urls)].filter((url) => !getState().results[url])
-        await Promise.all(todo.map((url) => load(url, false)))
+        // Mark all of them first, so that a second sync does not load them again.
+        for (const url of todo) setResult(url, { status: 'loading' })
+        const next = async (): Promise<void> => {
+          const url = todo.shift()
+          if (url === undefined) return
+          await load(url, false)
+          return next()
+        }
+        await Promise.all(Array.from({ length: Math.min(PARALLEL, todo.length) }, next))
       },
 
       async addUrl(url) {

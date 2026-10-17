@@ -1,5 +1,5 @@
 import { clear } from 'idb-keyval'
-import { FRESH_MS, createGuides } from './guides'
+import { FRESH_MS, PARALLEL, createGuides } from './guides'
 
 const NOW = Date.parse('2026-10-17T10:00:00Z')
 
@@ -56,4 +56,24 @@ test('adds and removes a guide of the user, also for the next start', async () =
   await next.getState().start()
   expect(next.getState().sources.map((s) => s.url)).toEqual(['https://g.example/b.xml'])
   expect(next.getState().results['https://g.example/b.xml']?.status).toBe('ready')
+})
+
+test('loads many guides a few at a time, and each one once', async () => {
+  let open = 0
+  let most = 0
+  const calls: string[] = []
+  const slow = (async (input: RequestInfo | URL) => {
+    calls.push(String(input))
+    open++
+    most = Math.max(most, open)
+    await new Promise((r) => setTimeout(r, 5))
+    open--
+    throw new TypeError('Failed to fetch')
+  }) as typeof fetch
+  const guides = createGuides(slow, () => NOW)
+  const urls = Array.from({ length: 12 }, (_, i) => `https://g.example/${i}.xml`)
+  await Promise.all([guides.getState().sync(urls), guides.getState().sync(urls)])
+  expect(most).toBe(PARALLEL)
+  expect(calls).toHaveLength(12)
+  expect(Object.values(guides.getState().results).every((r) => r.status === 'failed')).toBe(true)
 })
