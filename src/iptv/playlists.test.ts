@@ -75,6 +75,9 @@ test('renames and removes a playlist, also for the next start', async () => {
 test('makes a name from a URL', () => {
   expect(nameFromUrl('https://iptv-org.github.io/iptv/countries/uk.m3u')).toBe('uk')
   expect(nameFromUrl('https://provider.example/get.php?user=a&type=m3u')).toBe('provider.example')
+  expect(nameFromUrl('https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8')).toBe('Free-TV')
+  expect(nameFromUrl('https://raw.githubusercontent.com/doms9/iptv/default/M3U8/TV.m3u8')).toBe('TV')
+  expect(nameFromUrl('https://someone.github.io/tv/playlist.m3u')).toBe('someone')
   expect(nameFromUrl('not a url')).toBe('not a url')
 })
 

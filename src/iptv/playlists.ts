@@ -46,12 +46,16 @@ export interface Playlists {
   remove: (id: string) => Promise<void>
 }
 
-/** A name from the URL: the file name, or else the host. */
+/** A name from the URL: the file name, or else the owner of a GitHub file, or else the host. */
 export function nameFromUrl(url: string): string {
   try {
     const u = new URL(url)
-    const file = decodeURIComponent(u.pathname.split('/').pop() ?? '').replace(/\.(m3u8?|txt)$/i, '')
-    return file && !/^(get|playlist|index)(\.php)?$/i.test(file) ? file : u.hostname
+    const parts = u.pathname.split('/').filter(Boolean).map((p) => decodeURIComponent(p))
+    const file = (parts.at(-1) ?? '').replace(/\.(m3u8?|txt)$/i, '')
+    if (file && !/^(get|playlist|index)(\.php)?$/i.test(file)) return file
+    if (u.hostname === 'raw.githubusercontent.com' && parts[0]) return parts[0]
+    if (u.hostname.endsWith('.github.io')) return u.hostname.slice(0, -'.github.io'.length)
+    return u.hostname
   } catch {
     return url
   }

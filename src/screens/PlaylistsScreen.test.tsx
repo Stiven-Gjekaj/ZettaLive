@@ -22,7 +22,7 @@ test('adds a playlist from a URL and shows its channel count', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Add' }))
   const card = await screen.findByRole('listitem', { name: 'uk' })
   await waitFor(() => expect(within(card).getByText(/^2 channels, updated/)).toBeTruthy())
-  expect(screen.getByRole('status').textContent).toContain('Added 1 playlist and 0 guides.')
+  await waitFor(() => expect(screen.getByRole('status').textContent).toContain('Added 1 playlist and 0 guides.'))
 })
 
 test('adds a whole pasted list, and says what it skipped', async () => {
