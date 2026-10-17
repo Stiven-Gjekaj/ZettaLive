@@ -70,7 +70,9 @@ reasons that are known before the stream starts: a cleartext `http://` URL on
 an HTTPS page, or a channel that needs a user agent or a referrer.
 
 `player/engine.ts` starts the stream. hls.js plays HLS, and mpegts.js plays
-MPEG-TS. Both load only when the first stream of their kind starts. When the
+MPEG-TS. hls.js loads in the background when the browser is idle after the
+start, so the first channel does not wait for it. mpegts.js loads when the
+first MPEG-TS stream starts. When the
 browser has no Media Source Extensions but plays HLS itself, as Safari on an
 iPhone does, the video element plays the URL directly.
 
@@ -90,15 +92,24 @@ the guides that the user adds on the Playlists screen.
 
 `guide/xmltv.ts` reads a guide with regular expressions, not with a DOM, so a
 large guide does not use too much memory. It keeps only the programmes from
-3 hours before now to 36 hours after now. `guide/guides.ts` keeps the result
-of each guide in IndexedDB, and loads a guide again only when its copy is
-older than 6 hours. Four guides load at the same time, because a playlist can
-name a hundred guides. The Playlists screen shows the guides that playlists
-name and that failed as one group.
+3 hours before now to 36 hours after now.
+
+`guide/loadGuide.ts` gives one guide: the saved copy when it is younger than
+6 hours, or else the guide from the network. It saves each guide and each
+failure in IndexedDB. A guide that failed less than 6 hours ago does not
+load again at a start, but "Load again" always loads it. A Web Worker
+(`guide/guide.worker.ts`) runs this work, so that a large guide does not stop
+the page. When the browser cannot start the worker, the page does the work.
+
+`guide/guides.ts` keeps the state of each guide. Four guides load at the same
+time, because a playlist can name a hundred guides. The Playlists screen
+shows the guides that playlists name and that failed as one group.
 
 `guide/match.ts` finds the programmes of a channel: by its `tvg-id`, then by
 its `tvg-name`, then by its name. A name compares with no case, no accents,
-no text in brackets, and no HD or 4K mark.
+no text in brackets, and no HD or 4K mark. `guide/useGuide.ts` runs the match
+again only when a loaded guide or the channels change, and all screens share
+the last match.
 
 `screens/GuideScreen.tsx` draws 24 hours from the half hour before now. It
 draws only the rows and the programmes near the visible part of the grid.
