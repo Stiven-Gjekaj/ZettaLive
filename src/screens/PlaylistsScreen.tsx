@@ -84,6 +84,9 @@ function GuidesSection() {
   const urls = useGuideUrls()
   const own = useGuides((s) => s.sources)
   const results = useGuides((s) => s.results)
+  // A playlist can name many guides. The ones that fail show as one group.
+  const failed = urls.filter((u) => !own.some((s) => s.url === u) && results[u]?.status === 'failed')
+  const shown = urls.filter((u) => !failed.includes(u))
   return (
     <>
       <h2 className="list-title">Guides</h2>
@@ -92,7 +95,7 @@ function GuidesSection() {
         <p className="dim list-gap">You have no guides.</p>
       ) : (
         <ul className="stack plain-list list-gap">
-          {urls.map((u) => {
+          {shown.map((u) => {
             const mine = own.find((s) => s.url === u)
             const result = results[u]
             return (
@@ -116,6 +119,25 @@ function GuidesSection() {
               </li>
             )
           })}
+          {failed.length > 0 && (
+            <li className="card stack" aria-label="Guides that did not load">
+              <p>
+                {failed.length === 1 ? '1 guide that a playlist names did not load.' : `${failed.length} guides that playlists name did not load.`}
+              </p>
+              <p className="dim">This is often because the server does not let a browser read the guide (no CORS headers). The app tries again at the next start.</p>
+              <details>
+                <summary>Show the guides</summary>
+                <ul className="plain-list stack list-gap">
+                  {failed.map((u) => (
+                    <li key={u}>
+                      <p className="dim">{u}</p>
+                      <p className="error">{results[u]?.error}</p>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </li>
+          )}
         </ul>
       )}
     </>

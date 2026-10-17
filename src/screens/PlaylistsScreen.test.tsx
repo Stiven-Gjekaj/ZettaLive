@@ -59,3 +59,22 @@ test('adds an Xtream Codes account, and does not show its password', async () =>
   expect(within(card).getByText('Xtream Codes account me on tv.example')).toBeTruthy()
   expect(card.textContent).not.toContain('secret')
 })
+
+test('groups the guides that playlists name and that did not load', () => {
+  usePlaylists.setState({
+    sources: [{ id: 'p', name: 'Free', url: 'https://a.example/x.m3u', addedAt: 0 }],
+    results: { p: { status: 'ready', channels: [], guideUrls: ['https://g.example/1.xml', 'https://g.example/2.xml', 'https://g.example/3.xml'] } },
+  })
+  useGuides.setState({
+    results: {
+      'https://g.example/1.xml': { status: 'failed', error: 'No CORS.' },
+      'https://g.example/2.xml': { status: 'failed', error: 'No CORS.' },
+      'https://g.example/3.xml': { status: 'ready', guide: { channels: [], programmes: {} }, savedAt: 0 },
+    },
+  })
+  render(<PlaylistsScreen />)
+  const group = screen.getByRole('listitem', { name: 'Guides that did not load' })
+  expect(within(group).getByText('2 guides that playlists name did not load.')).toBeTruthy()
+  expect(screen.getByRole('listitem', { name: 'https://g.example/3.xml' })).toBeTruthy()
+  expect(screen.queryByRole('listitem', { name: 'https://g.example/1.xml' })).toBeNull()
+})
