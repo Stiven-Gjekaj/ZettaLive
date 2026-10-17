@@ -5,6 +5,7 @@ import { usePlaylists } from './iptv/playlists'
 import { useProfiles } from './library/profiles'
 import { useSettings } from './library/settings'
 import { PlayerView } from './player/PlayerView'
+import { prefetchPlayer } from './player/prefetch'
 import { GuideScreen } from './screens/GuideScreen'
 import { LiveScreen } from './screens/LiveScreen'
 import { PlaylistsScreen } from './screens/PlaylistsScreen'
@@ -25,6 +26,7 @@ export function App() {
   useEffect(() => {
     void usePlaylists.getState().start()
     void useGuides.getState().start()
+    prefetchPlayer()
     // Open the start screen of the profile once its settings are loaded.
     void useProfiles
       .getState()
