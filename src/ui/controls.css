@@ -115,3 +115,12 @@ summary {
   cursor: pointer;
   font-weight: 600;
 }
+
+.paste {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}

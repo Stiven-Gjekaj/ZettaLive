@@ -3,6 +3,7 @@ import { LoadError, isBlockedCleartext } from '../iptv/fetchText'
 import { usePlaylists, type PlaylistResult, type PlaylistSource } from '../iptv/playlists'
 import { useGuides, type GuideResult } from '../guide/guides'
 import { useGuideUrls } from '../guide/useGuide'
+import { addPastedList, summaryText } from '../iptv/addList'
 
 function time(ms: number | undefined): string {
   return ms ? new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''
@@ -83,46 +84,12 @@ function GuidesSection() {
   const urls = useGuideUrls()
   const own = useGuides((s) => s.sources)
   const results = useGuides((s) => s.results)
-  const [url, setUrl] = useState('')
-  const [problem, setProblem] = useState('')
-
-  const add = (e: FormEvent) => {
-    e.preventDefault()
-    const clean = url.trim()
-    if (!/^https?:\/\/\S+$/i.test(clean)) return setProblem('Type a URL that starts with https://.')
-    if (isBlockedCleartext(clean)) return setProblem('The URL starts with http://. A browser cannot load it from an HTTPS page. Use an https:// URL.')
-    setProblem('')
-    setUrl('')
-    void useGuides.getState().addUrl(clean)
-  }
-
   return (
     <>
       <h2 className="list-title">Guides</h2>
-      <form className="card stack" onSubmit={add} noValidate>
-        <label htmlFor="guide-url">Add an XMLTV guide from a URL</label>
-        <div className="row">
-          <input
-            id="guide-url"
-            className="input grow"
-            type="url"
-            inputMode="url"
-            placeholder="https://example.com/guide.xml.gz"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-          <button className="button button-primary" type="submit">
-            Add guide
-          </button>
-        </div>
-        {problem && (
-          <p className="error" role="alert">
-            {problem}
-          </p>
-        )}
-      </form>
+      <p className="dim">Paste a guide URL in the box at the top. A playlist can also name its guide.</p>
       {urls.length === 0 ? (
-        <p className="dim list-gap">You have no guides. A playlist can also name its guide.</p>
+        <p className="dim list-gap">You have no guides.</p>
       ) : (
         <ul className="stack plain-list list-gap">
           {urls.map((u) => {
@@ -209,26 +176,29 @@ function XtreamForm() {
 /** The user adds, loads again, renames, and removes playlists here. */
 export function PlaylistsScreen() {
   const sources = usePlaylists((s) => s.sources)
-  const [url, setUrl] = useState('')
-  const [name, setName] = useState('')
+  const [text, setText] = useState('')
   const [problem, setProblem] = useState('')
+  const [summary, setSummary] = useState<string[]>([])
+  const [adding, setAdding] = useState(false)
   const file = useRef<HTMLInputElement>(null)
 
-  const addUrl = (e: FormEvent) => {
+  const addList = async (e: FormEvent) => {
     e.preventDefault()
-    const clean = url.trim()
-    if (!/^https?:\/\/\S+$/i.test(clean)) return setProblem('Type a URL that starts with https://.')
-    if (isBlockedCleartext(clean)) return setProblem('The URL starts with http://. A browser cannot load it from an HTTPS page. Use an https:// URL.')
     setProblem('')
-    setUrl('')
-    setName('')
-    void usePlaylists.getState().addUrl(clean, name)
+    setAdding(true)
+    try {
+      setSummary(summaryText(await addPastedList(text)))
+      setText('')
+    } finally {
+      setAdding(false)
+    }
   }
 
   const addFile = async (chosen: File | undefined) => {
     if (!chosen) return
     try {
       setProblem('')
+      setSummary([])
       await usePlaylists.getState().addFile(chosen)
     } catch (e) {
       setProblem(e instanceof LoadError ? e.message : 'The file could not be read.')
@@ -241,24 +211,32 @@ export function PlaylistsScreen() {
     <section>
       <h1 className="screen-title">Playlists</h1>
       <div className="card stack">
-        <form className="stack" onSubmit={addUrl} noValidate>
-          <label htmlFor="playlist-url">Add a playlist from a URL</label>
+        <form className="stack" onSubmit={(e) => void addList(e)} noValidate>
+          <label htmlFor="playlist-url">Add playlists and guides</label>
+          <p className="dim">Paste one URL or a whole list, with one URL on each line. The app finds the playlists and the XMLTV guides. A line that starts with # is a note.</p>
+          <textarea
+            id="playlist-url"
+            className="input paste"
+            rows={4}
+            spellCheck={false}
+            autoCapitalize="off"
+            placeholder={'https://example.com/playlist.m3u\nhttps://example.com/guide.xml.gz'}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
           <div className="row">
-            <input
-              id="playlist-url"
-              className="input grow"
-              type="url"
-              inputMode="url"
-              placeholder="https://example.com/playlist.m3u"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-            <input className="input" aria-label="Name (optional)" placeholder="Name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
-            <button className="button button-primary" type="submit">
-              Add
+            <button className="button button-primary" type="submit" disabled={adding || !text.trim()}>
+              {adding ? 'Adding...' : 'Add'}
             </button>
           </div>
         </form>
+        {summary.length > 0 && (
+          <div role="status" className="stack">
+            {summary.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        )}
         <div className="row">
           <span className="dim">Or</span>
           <button className="button" type="button" onClick={() => file.current?.click()}>

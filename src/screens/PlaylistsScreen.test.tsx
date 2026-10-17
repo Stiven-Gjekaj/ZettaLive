@@ -18,23 +18,27 @@ afterEach(() => vi.unstubAllGlobals())
 test('adds a playlist from a URL and shows its channel count', async () => {
   render(<PlaylistsScreen />)
   expect(screen.getByText('You have no playlists. Add one above.')).toBeTruthy()
-  fireEvent.change(screen.getByLabelText('Add a playlist from a URL'), { target: { value: 'https://a.example/uk.m3u' } })
+  fireEvent.change(screen.getByLabelText('Add playlists and guides'), { target: { value: 'https://a.example/uk.m3u' } })
   fireEvent.click(screen.getByRole('button', { name: 'Add' }))
   const card = await screen.findByRole('listitem', { name: 'uk' })
   await waitFor(() => expect(within(card).getByText(/^2 channels, updated/)).toBeTruthy())
+  expect(screen.getByRole('status').textContent).toContain('Added 1 playlist and 0 guides.')
 })
 
-test('refuses a cleartext URL on an HTTPS page, and a text that is not a URL', () => {
+test('adds a whole pasted list, and says what it skipped', async () => {
   vi.stubGlobal('location', { protocol: 'https:' })
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) =>
+    new Response(String(input).endsWith('.xml') ? '<tv><channel id="a"><display-name>A</display-name></channel></tv>' : LIST),
+  )
   render(<PlaylistsScreen />)
-  const input = screen.getByLabelText('Add a playlist from a URL')
-  fireEvent.change(input, { target: { value: 'http://a.example/uk.m3u' } })
+  const list = ['# IPTV playlists', 'https://a.example/al.m3u', 'https://a.example/sqi.m3u', '# TV guide', 'https://g.example/TV.xml', 'http://old.example/x.m3u', 'https://v3-cinemeta.strem.io/manifest.json'].join('\n')
+  fireEvent.change(screen.getByLabelText('Add playlists and guides'), { target: { value: list } })
   fireEvent.click(screen.getByRole('button', { name: 'Add' }))
-  expect(screen.getByRole('alert').textContent).toContain('starts with http://')
-  fireEvent.change(input, { target: { value: 'my list' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Add' }))
-  expect(screen.getByRole('alert').textContent).toContain('starts with https://')
-  expect(usePlaylists.getState().sources).toEqual([])
+  await waitFor(() => expect(screen.getByRole('status').textContent).toContain('Added 2 playlists and 1 guide.'))
+  expect(screen.getByRole('status').textContent).toContain('Skipped 1 Stremio addon.')
+  expect(screen.getByRole('status').textContent).toContain('Skipped 1 http:// URL.')
+  expect(await screen.findByRole('listitem', { name: 'al' })).toBeTruthy()
+  expect(await screen.findByRole('listitem', { name: 'https://g.example/TV.xml' })).toBeTruthy()
 })
 
 test('removes a playlist after the user confirms', async () => {
@@ -43,16 +47,6 @@ test('removes a playlist after the user confirms', async () => {
   render(<PlaylistsScreen />)
   fireEvent.click(within(screen.getByRole('listitem', { name: 'uk' })).getByRole('button', { name: 'Remove' }))
   await waitFor(() => expect(screen.queryByRole('listitem')).toBeNull())
-})
-
-test('adds a guide URL and shows how many channels it has', async () => {
-  vi.stubGlobal('fetch', async () => new Response('<tv><programme start="20990101000000" stop="20990101010000" channel="x"><title>T</title></programme></tv>'))
-  render(<PlaylistsScreen />)
-  fireEvent.change(screen.getByLabelText('Add an XMLTV guide from a URL'), { target: { value: 'https://g.example/e.xml' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Add guide' }))
-  const card = await screen.findByRole('listitem', { name: 'https://g.example/e.xml' })
-  await waitFor(() => expect(within(card).getByText(/channels with programmes|channel with programmes/)).toBeTruthy())
-  expect(within(card).getByRole('button', { name: 'Remove' })).toBeTruthy()
 })
 
 test('adds an Xtream Codes account, and does not show its password', async () => {
