@@ -29,7 +29,12 @@ screen. `iptv/playlists.ts` keeps the playlists.
 
 ## Playlists
 
-The user adds a playlist from a URL or from a file. `idb-keyval` keeps the
+The user adds a playlist from a URL or from a file. The URL box takes one
+URL or a whole pasted list. `iptv/sourceList.ts` sorts each line by its
+shape: an XMLTV guide (`.xml`, `.xml.gz`, `xmltv.php`), a Stremio addon
+(`manifest.json`, which the app skips), or else a playlist. A line that
+starts with `#` is a note. `iptv/addList.ts` adds each new URL once and
+gives a summary of what it added and skipped. `idb-keyval` keeps the
 list of playlists in IndexedDB, and also the last text of each playlist.
 
 At each start, the app reads each URL again. When a URL fails, the app shows
@@ -87,7 +92,9 @@ the guides that the user adds on the Playlists screen.
 large guide does not use too much memory. It keeps only the programmes from
 3 hours before now to 36 hours after now. `guide/guides.ts` keeps the result
 of each guide in IndexedDB, and loads a guide again only when its copy is
-older than 6 hours.
+older than 6 hours. Four guides load at the same time, because a playlist can
+name a hundred guides. The Playlists screen shows the guides that playlists
+name and that failed as one group.
 
 `guide/match.ts` finds the programmes of a channel: by its `tvg-id`, then by
 its `tvg-name`, then by its name. A name compares with no case, no accents,
