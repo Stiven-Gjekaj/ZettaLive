@@ -77,3 +77,19 @@ test('loads many guides a few at a time, and each one once', async () => {
   expect(calls).toHaveLength(12)
   expect(Object.values(guides.getState().results).every((r) => r.status === 'failed')).toBe(true)
 })
+
+test('does not load a failed guide again at a start for six hours, but does when the user asks', async () => {
+  const calls: string[] = []
+  await createGuides(server({}, calls), () => NOW).getState().sync(['https://g.example/a.xml'])
+  const soon = createGuides(server({ 'https://g.example/a.xml': GUIDE }, calls), () => NOW + 1000)
+  await soon.getState().sync(['https://g.example/a.xml'])
+  expect(calls).toHaveLength(1)
+  expect(soon.getState().results['https://g.example/a.xml']).toEqual({ status: 'failed', error: expect.stringContaining('CORS') })
+  await soon.getState().reload('https://g.example/a.xml')
+  expect(calls).toHaveLength(2)
+  expect(soon.getState().results['https://g.example/a.xml']?.status).toBe('ready')
+  const late = createGuides(server({}, calls), () => NOW + FRESH_MS + 1)
+  await late.getState().sync(['https://g.example/b.xml'])
+  await createGuides(server({}, calls), () => NOW + 2000).getState().sync(['https://g.example/b.xml'])
+  expect(calls.filter((c) => c.endsWith('b.xml'))).toHaveLength(1)
+})

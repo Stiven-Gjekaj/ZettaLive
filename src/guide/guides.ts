@@ -22,10 +22,17 @@ interface SavedGuide {
   savedAt: number
 }
 
+/** The last failure of a guide. */
+interface Failure {
+  at: number
+  error: string
+}
+
 const SOURCES_KEY = 'guides'
 const guideKey = (url: string) => `guide:${url}`
+const failureKey = (url: string) => `guide-failed:${url}`
 
-/** A saved guide younger than this does not load again at a start. */
+/** A saved guide younger than this does not load again at a start. A failed guide waits this long too. */
 export const FRESH_MS = 6 * 3600_000
 /** The app keeps the programmes from this time before now. */
 export const PAST_MS = 3 * 3600_000
@@ -61,17 +68,24 @@ export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args)
     const load = async (url: string, force: boolean) => {
       const saved = await get<SavedGuide>(guideKey(url))
       const now = clock()
+      const failed = (r: { error: string }): GuideResult =>
+        saved ? { status: 'ready', guide: saved.guide, savedAt: saved.savedAt, error: r.error } : { status: 'failed', error: r.error }
       if (saved && !force && now - saved.savedAt < FRESH_MS) {
         return setResult(url, { status: 'ready', guide: saved.guide, savedAt: saved.savedAt })
       }
+      // A guide that failed a short time ago does not load again at a start.
+      const failure = force ? undefined : await get<Failure>(failureKey(url))
+      if (failure && now - failure.at < FRESH_MS) return setResult(url, failed(failure))
       setResult(url, { ...getState().results[url], status: 'loading' })
       try {
         const guide = readGuide(await fetchText(url, fetcher), now)
         await set(guideKey(url), { guide, savedAt: now } satisfies SavedGuide)
+        await del(failureKey(url))
         setResult(url, { status: 'ready', guide, savedAt: now })
       } catch (e) {
         const error = e instanceof LoadError ? e.message : 'The guide could not be read.'
-        setResult(url, saved ? { status: 'ready', guide: saved.guide, savedAt: saved.savedAt, error } : { status: 'failed', error })
+        await set(failureKey(url), { at: now, error } satisfies Failure)
+        setResult(url, failed({ error }))
       }
     }
 
@@ -114,7 +128,7 @@ export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args)
         const sources = getState().sources.filter((s) => s.id !== id)
         setState({ sources })
         await saveSources(sources)
-        if (source) await del(guideKey(source.url))
+        if (source) await Promise.all([del(guideKey(source.url)), del(failureKey(source.url))])
       },
 
       reload: (url) => load(url, true),
