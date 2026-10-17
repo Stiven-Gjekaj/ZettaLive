@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { del, get, set } from 'idb-keyval'
-import { LoadError, fetchText } from '../iptv/fetchText'
-import { parseXmltv, type Guide } from './xmltv'
+import { failureKey, guideKey, loadGuide, type GuideResult } from './loadGuide'
+import { workerLoader } from './workerLoader'
+
+export { FRESH_MS, FUTURE_MS, MAX_CHARS, PAST_MS, readGuide, type GuideResult } from './loadGuide'
 
 /** A guide URL that the user added. */
 export interface GuideSource {
@@ -10,39 +12,13 @@ export interface GuideSource {
   addedAt: number
 }
 
-export interface GuideResult {
-  status: 'loading' | 'ready' | 'failed'
-  guide?: Guide
-  error?: string
-  savedAt?: number
-}
-
-interface SavedGuide {
-  guide: Guide
-  savedAt: number
-}
-
-/** The last failure of a guide. */
-interface Failure {
-  at: number
-  error: string
-}
+/** Gives the result of one guide. */
+export type Loader = (url: string, force: boolean, now: number) => Promise<GuideResult>
 
 const SOURCES_KEY = 'guides'
-const guideKey = (url: string) => `guide:${url}`
-const failureKey = (url: string) => `guide-failed:${url}`
 
-/** A saved guide younger than this does not load again at a start. A failed guide waits this long too. */
-export const FRESH_MS = 6 * 3600_000
-/** The app keeps the programmes from this time before now. */
-export const PAST_MS = 3 * 3600_000
-/** The app keeps the programmes until this time after now. */
-export const FUTURE_MS = 36 * 3600_000
 /** The number of guides that load at the same time. A playlist can name many guides. */
 export const PARALLEL = 4
-
-/** A guide file larger than this is too large for a browser. */
-export const MAX_CHARS = 150_000_000
 
 export interface Guides {
   sources: GuideSource[]
@@ -55,38 +31,21 @@ export interface Guides {
   reload: (url: string) => Promise<void>
 }
 
-export function readGuide(text: string, now: number): Guide {
-  if (text.length > MAX_CHARS) throw new LoadError('The guide is too large for a browser.')
-  if (!/<tv[\s>]/i.test(text.slice(0, 4096))) throw new LoadError('The file is not an XMLTV guide.')
-  return parseXmltv(text, { from: now - PAST_MS, to: now + FUTURE_MS })
+/** The loader of the app: a Web Worker when the browser has one, or else the page itself. */
+function defaultLoader(): Loader {
+  if (typeof Worker !== 'undefined') return workerLoader()
+  return (url, force, now) => loadGuide(url, { force, now })
 }
 
-export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args), clock: () => number = Date.now) {
+export function createGuides({ loader, clock = Date.now }: { loader?: Loader; clock?: () => number } = {}) {
+  let load: Loader | undefined = loader
   return create<Guides>((setState, getState) => {
     const setResult = (url: string, result: GuideResult) => setState((s) => ({ results: { ...s.results, [url]: result } }))
 
-    const load = async (url: string, force: boolean) => {
-      const saved = await get<SavedGuide>(guideKey(url))
-      const now = clock()
-      const failed = (r: { error: string }): GuideResult =>
-        saved ? { status: 'ready', guide: saved.guide, savedAt: saved.savedAt, error: r.error } : { status: 'failed', error: r.error }
-      if (saved && !force && now - saved.savedAt < FRESH_MS) {
-        return setResult(url, { status: 'ready', guide: saved.guide, savedAt: saved.savedAt })
-      }
-      // A guide that failed a short time ago does not load again at a start.
-      const failure = force ? undefined : await get<Failure>(failureKey(url))
-      if (failure && now - failure.at < FRESH_MS) return setResult(url, failed(failure))
+    const run = async (url: string, force: boolean) => {
+      load ??= defaultLoader()
       setResult(url, { ...getState().results[url], status: 'loading' })
-      try {
-        const guide = readGuide(await fetchText(url, fetcher), now)
-        await set(guideKey(url), { guide, savedAt: now } satisfies SavedGuide)
-        await del(failureKey(url))
-        setResult(url, { status: 'ready', guide, savedAt: now })
-      } catch (e) {
-        const error = e instanceof LoadError ? e.message : 'The guide could not be read.'
-        await set(failureKey(url), { at: now, error } satisfies Failure)
-        setResult(url, failed({ error }))
-      }
+      setResult(url, await load(url, force, clock()))
     }
 
     const saveSources = (sources: GuideSource[]) => set(SOURCES_KEY, sources)
@@ -108,7 +67,7 @@ export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args)
         const next = async (): Promise<void> => {
           const url = todo.shift()
           if (url === undefined) return
-          await load(url, false)
+          await run(url, false)
           return next()
         }
         await Promise.all(Array.from({ length: Math.min(PARALLEL, todo.length) }, next))
@@ -120,7 +79,7 @@ export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args)
         const sources = [...getState().sources, { id: crypto.randomUUID(), url: clean, addedAt: clock() }]
         setState({ sources })
         await saveSources(sources)
-        await load(clean, true)
+        await run(clean, true)
       },
 
       async remove(id) {
@@ -131,7 +90,7 @@ export function createGuides(fetcher: typeof fetch = (...args) => fetch(...args)
         if (source) await Promise.all([del(guideKey(source.url)), del(failureKey(source.url))])
       },
 
-      reload: (url) => load(url, true),
+      reload: (url) => run(url, true),
     }
   })
 }

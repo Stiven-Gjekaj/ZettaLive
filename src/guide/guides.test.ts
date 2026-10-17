@@ -1,5 +1,9 @@
 import { clear } from 'idb-keyval'
-import { FRESH_MS, PARALLEL, createGuides } from './guides'
+import { FRESH_MS, PARALLEL, createGuides as makeGuides } from './guides'
+import { loadGuide } from './loadGuide'
+
+const createGuides = (fetcher: typeof fetch, clock: () => number) =>
+  makeGuides({ loader: (url, force, now) => loadGuide(url, { force, now, fetcher }), clock })
 
 const NOW = Date.parse('2026-10-17T10:00:00Z')
 
